@@ -91,7 +91,7 @@ def direct(character, beats, timing, seed=11, speaker_id="A", t_offset=0.0):
                     s0 = t0 - 0.35; add_gesture(name, s0, hold_end - s0 - 0.1, a.get("tags", []), "after_punchline(reveal)")
                 else:
                     add_gesture(name, t1 + 0.12, min(1.4, max(0.9, hold_end - t1)), a.get("tags", []), "after_punchline")
-        if btype == "closer" or (i + 1 < n and beats[i + 1].get("type") == "closer" and False):
+        if btype == "closer" and perf.get("gesture") != "hold still":
             name, a = _action_for(character, trigger="before_closer")
             if name:
                 budget += 1; last_g = -99  # structural: the closer action always plays

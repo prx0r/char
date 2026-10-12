@@ -1,0 +1,214 @@
+{
+ "slug": "chris-prior-golf-dad",
+ "style": "pogtown-2d-v1",
+ "display_name": "Chris Prior",
+ "tagline": "Retired \u00b7 Golf \u00b7 Garage \u00b7 Tesla",
+ "tag_color": "#5ab0ff",
+ "art": {
+  "base": "art/base.png",
+  "props": {}
+ },
+ "cut": {
+  "y_cut": 535,
+  "neck_poly": [
+   [
+    300,
+    535
+   ],
+   [
+    302,
+    562
+   ],
+   [
+    330,
+    600
+   ],
+   [
+    355,
+    630
+   ],
+   [
+    372,
+    655
+   ],
+   [
+    386,
+    668
+   ],
+   [
+    400,
+    655
+   ],
+   [
+    418,
+    630
+   ],
+   [
+    445,
+    600
+   ],
+   [
+    468,
+    562
+   ],
+   [
+    470,
+    535
+   ]
+  ],
+  "neck_fill": [
+   205,
+   140,
+   108
+  ],
+  "pivot": [
+   386,
+   590
+  ],
+  "collar_poly": [
+   [
+    250,
+    470
+   ],
+   [
+    302,
+    470
+   ],
+   [
+    302,
+    562
+   ],
+   [
+    330,
+    600
+   ],
+   [
+    355,
+    630
+   ],
+   [
+    372,
+    655
+   ],
+   [
+    386,
+    668
+   ],
+   [
+    400,
+    655
+   ],
+   [
+    418,
+    630
+   ],
+   [
+    445,
+    600
+   ],
+   [
+    468,
+    562
+   ],
+   [
+    468,
+    470
+   ],
+   [
+    530,
+    470
+   ],
+   [
+    540,
+    760
+   ],
+   [
+    240,
+    760
+   ]
+  ]
+ },
+ "eyes": {
+  "type": "human",
+  "L": [
+   331,
+   343
+  ],
+  "R": [
+   445,
+   343
+  ],
+  "hw": 30,
+  "ht": 15.5,
+  "hb": 11.5,
+  "iris_r": 12.5,
+  "white": "#fbf7f0",
+  "iris": "#6b5338",
+  "iris_hi": "#9a7c55",
+  "skin": "#d99675",
+  "ink": "#3b1f14",
+  "lash": 4.2,
+  "lid_gain": 0.6
+ },
+ "brows": {
+  "L": {
+   "inner": [
+    372,
+    322
+   ],
+   "peak": [
+    334,
+    310
+   ],
+   "outer": [
+    300,
+    320
+   ],
+   "th": 11,
+   "color": "#4c4a45",
+   "ink": "#2e2620"
+  },
+  "R": {
+   "inner": [
+    402,
+    322
+   ],
+   "peak": [
+    442,
+    310
+   ],
+   "outer": [
+    474,
+    320
+   ],
+   "th": 11,
+   "color": "#4c4a45",
+   "ink": "#2e2620"
+  }
+ },
+ "mouth": {
+  "type": "vector",
+  "cx": 387,
+  "cy": 446,
+  "hw": 52,
+  "max_open": 30,
+  "line": 4.6,
+  "smirk": 2,
+  "interior": "#4a1816",
+  "tongue": "#c86a6a",
+  "teeth": "#f8f3e6",
+  "ink": "#3b1f14"
+ },
+ "place": {
+  "scale": 1.40625,
+  "x": 0,
+  "y": 250
+ },
+ "voice_fallback": {
+  "provider": "kokoro",
+  "voice_id": "bm_george:0.7+bm_lewis:0.3",
+  "speed": 0.94,
+  "lang": "en-gb",
+  "note": "stand-in: Kokoro British male blend (VoxCPM2 design could not run, see CAPABILITY_REPORT)"
+ }
+}

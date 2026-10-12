@@ -1,0 +1,83 @@
+{
+ "beats": [
+  {
+   "id": "c1",
+   "type": "setup",
+   "text": "I'm seventy. I play golf, I build things in the garage, and I drive a Tesla.",
+   "performance": {
+    "expression": "neutral",
+    "gesture": "normal",
+    "look": "audience"
+   },
+   "speech": {
+    "emphasis": 0.5,
+    "pace": "normal"
+   },
+   "pause_after_ms": 300
+  },
+  {
+   "id": "c2",
+   "type": "setup",
+   "text": "My swing is a crime. The wind is a crime. Trees? Crime.",
+   "performance": {
+    "expression": "annoyed",
+    "gesture": "small gesture",
+    "look": "audience"
+   },
+   "speech": {
+    "emphasis": 0.7,
+    "pace": "normal"
+   },
+   "pause_after_ms": 600
+  },
+  {
+   "id": "c3",
+   "type": "punchline",
+   "text": "The car drives itself now. Which is good, because eventually so will I. To the cemetery.",
+   "performance": {
+    "expression": "deadpan",
+    "gesture": "hold still",
+    "look": "audience"
+   },
+   "speech": {
+    "emphasis": 0.9,
+    "pace": "normal"
+   },
+   "pause_after_ms": 1100
+  },
+  {
+   "id": "c4",
+   "type": "closer",
+   "text": "Kettle's on.",
+   "performance": {
+    "expression": "smug",
+    "gesture": "lean in",
+    "look": "audience"
+   },
+   "speech": {
+    "emphasis": 1.0,
+    "pace": "normal"
+   },
+   "pause_after_ms": 1000
+  }
+ ],
+ "metadata": {
+  "beat_count": 4,
+  "punchline_count": 1,
+  "word_count": 46
+ },
+ "profile": {
+  "energy": 0.5,
+  "eye_contact": 0.8,
+  "gesture_frequency": 0.3,
+  "movement": 0.4,
+  "pace": 0.92,
+  "punchline_hold_ms": 1100
+ },
+ "version": "freaktown.delivery.v1",
+ "voice": {
+  "provider": "voxcpm",
+  "seed": 7,
+  "design": "A 70-year-old English man from the south of England, warm gravelly baritone, dry deadpan humour, unhurried pace, slight smile in the voice"
+ }
+}

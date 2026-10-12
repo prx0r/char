@@ -35,6 +35,9 @@ def load_rig(slug):
 
 def synth_beat(character, beat, wav, voice_override=None):
     v = voice_override or character.get("voice", {})
+    if v.get("provider") == "voxcpm" and os.environ.get("VOXCPM_OK") != "1":
+        # VoxCPM2 (2B) is OOM-killed on this 8 GB CPU box; set VOXCPM_OK=1 on a bigger machine.
+        v = json.load(open(os.path.join(ROOT, "characters", character["_slug"], "rig.json"))).get("voice_fallback", v)
     if v.get("provider") == "edge-tts" and os.environ.get("EDGE_TTS_OK") != "1":
         # edge-tts returns HTTP 403 from this sandbox (see experiments/CAPABILITY_REPORT.md);
         # use the rig's local stand-in voice and label it honestly.

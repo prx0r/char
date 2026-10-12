@@ -1,0 +1,14 @@
+{"name": "ralph-chris-duet",
+ "cast": {"A": "reptilian-ralph-middle-management", "B": "chris-prior-golf-dad"},
+ "lines": [
+  {"who": "A", "type": "setup", "text": "Mister Prior. Compliance says you must address me as sir.",
+   "performance": {"expression": "neutral", "gesture": "normal", "look": "partner"}, "speech": {"emphasis": 0.5}, "pause_after_ms": 250},
+  {"who": "B", "type": "setup", "text": "I'm seventy, Ralph. I don't call my doctor sir.",
+   "performance": {"expression": "smug", "gesture": "normal", "look": "partner"}, "speech": {"emphasis": 0.6}, "pause_after_ms": 300},
+  {"who": "A", "type": "setup", "text": "Your Tesla reports to us, you know. Every mile.",
+   "performance": {"expression": "annoyed", "gesture": "small gesture", "look": "partner"}, "speech": {"emphasis": 0.7}, "pause_after_ms": 300},
+  {"who": "B", "type": "punchline", "text": "Lovely. Tell it to stop braking for leaves.",
+   "performance": {"expression": "deadpan", "gesture": "hold still", "look": "audience"}, "speech": {"emphasis": 0.9}, "pause_after_ms": 900},
+  {"who": "A", "type": "closer", "text": "Noted.",
+   "performance": {"expression": "deadpan", "gesture": "hold still", "look": "audience"}, "speech": {"emphasis": 1.0}, "pause_after_ms": 1000}
+ ]}

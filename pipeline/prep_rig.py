@@ -49,6 +49,15 @@ def main(slug):
     ycut = cut["y_cut"]
     top = [[0, 0], [W, 0], [W, ycut], [0, ycut]]
     head_m = poly_mask((W, H), [top, cut["neck_poly"]])
+    collar_m = None
+    if cut.get("collar_poly"):
+        # garment that sits in front of the neck/jaw line: cut it OUT of the head and draw it above the head
+        cm = np.asarray(poly_mask((W, H), [cut["collar_poly"]])) > 0
+        nm = np.asarray(poly_mask((W, H), [cut["neck_poly"]])) > 0
+        cm = cm & ~nm
+        hm = (np.asarray(head_m) > 0) & ~cm
+        head_m = Image.fromarray(hm.astype(np.uint8) * 255)
+        collar_m = Image.fromarray(cm.astype(np.uint8) * 255)
     # head layer: keyed pixels in head mask + hidden neck extension filled with neck colour
     head = Image.new("RGBA", (W, H), (0, 0, 0, 0))
     head.paste(keyed, (0, 0), head_m)
@@ -65,6 +74,9 @@ def main(slug):
     L = os.path.join(root, "layers"); os.makedirs(L, exist_ok=True)
     head.save(os.path.join(L, "head.png")); body.save(os.path.join(L, "body.png"))
     out = {"head": "layers/head.png", "body": "layers/body.png", "size": [W, H]}
+    if collar_m is not None:
+        col = Image.new("RGBA", (W, H), (0, 0, 0, 0)); col.paste(keyed, (0, 0), collar_m)
+        col.save(os.path.join(L, "collar.png")); out["collar"] = "layers/collar.png"
     mouth = rig.get("mouth", {})
     if mouth.get("type") == "jaw":
         # jaw = head pixels between mouth line (top edge, inclusive of line) and jaw bottom, feathered bottom

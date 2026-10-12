@@ -1,0 +1,9 @@
+{
+ "head": "layers/head.png",
+ "body": "layers/body.png",
+ "size": [
+  768,
+  1376
+ ],
+ "collar": "layers/collar.png"
+}

@@ -1,0 +1,6 @@
+{
+ "style_lock": "characters/reptilian-ralph-middle-management/art/base.png",
+ "likeness_ref": "/workspace/projects/791a7153-8d05-4c9b-b767-8f281ad46eb0/chris/card/photo.jpg",
+ "sheet": "Tall vertical 9:16 character portrait ... EXACTLY the same art style as the first reference image ... (see experiments/MANIFEST.md for the full prompt)",
+ "blank_face": "Edit the reference image. Keep EVERYTHING identical ... remove both eyes, both eyebrows, and the mouth ..."
+}

@@ -1,5 +1,5 @@
 """Frame-accurate render of a timeline in headless Chromium (Playwright) -> H.264 + audio mux."""
-import base64, json, os, subprocess, sys, time, threading, http.server, socketserver, functools
+import base64, json, os, shutil, subprocess, sys, time, threading, http.server, socketserver, functools
 from multiprocessing import Process
 
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
@@ -50,8 +50,11 @@ def render(timeline_path, audio_path, out_mp4, workers=2, port=8765, q=0.93, fra
     cmd = ["ffmpeg", "-nostdin", "-y", "-loglevel", "error", "-f", "concat", "-safe", "0", "-i", lst]
     if audio_path: cmd += ["-i", audio_path, "-c:v", "copy", "-c:a", "aac", "-b:a", "192k", "-shortest"]
     else: cmd += ["-c", "copy"]
-    cmd += ["-movflags", "+faststart", out_mp4]
+    tmp_out = "/tmp/_mux_%d.mp4" % os.getpid()   # faststart rewrite fails on the JuiceFS mount; mux locally then copy
+    cmd += ["-movflags", "+faststart", tmp_out]
     subprocess.run(cmd, check=True)
+    shutil.copyfile(tmp_out, out_mp4); os.remove(tmp_out)
+    shutil.rmtree(tmp, ignore_errors=True)
     httpd.shutdown()
     el = time.time() - t
     return {"frames": n, "render_s": round(el, 1), "fps_render": round(n / el, 2)}

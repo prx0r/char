@@ -38,13 +38,13 @@ const EXPR = {
 const VIS = { // Rhubarb mouth shapes -> params
   X: { open: 0,   wide: .96, round: 0,  teeth: 0, tongue: 0 },
   A: { open: 0,   wide: .9,  round: 0,  teeth: 0, tongue: 0, press: 1 },
-  B: { open: .2,  wide: 1.0, round: 0,  teeth: 1, tongue: 0 },
-  C: { open: .46, wide: 1.04,round: 0,  teeth: 1, tongue: .3 },
+  B: { open: .3,  wide: 1.0, round: 0,  teeth: 1, tongue: 0 },
+  C: { open: .58, wide: 1.04,round: 0,  teeth: 1, tongue: .3 },
   D: { open: .9,  wide: 1.08,round: 0,  teeth: 1, tongue: .6 },
-  E: { open: .58, wide: .82, round: .45,teeth: 0, tongue: .4 },
-  F: { open: .26, wide: .62, round: .95,teeth: 0, tongue: 0 },
-  G: { open: .12, wide: .96, round: 0,  teeth: 2, tongue: 0 },
-  H: { open: .5,  wide: 1.0, round: 0,  teeth: 1, tongue: 1, tongueUp: 1 },
+  E: { open: .66, wide: .82, round: .45,teeth: 0, tongue: .4 },
+  F: { open: .34, wide: .62, round: .95,teeth: 0, tongue: 0 },
+  G: { open: .16, wide: .96, round: 0,  teeth: 2, tongue: 0 },
+  H: { open: .6,  wide: 1.0, round: 0,  teeth: 1, tongue: 1, tongueUp: 1 },
 };
 
 // ---------- track sampling ----------
@@ -156,7 +156,7 @@ function humanEye(c, E, cx, cy, side, st) {
   const sg = c.createLinearGradient(0, cy - htt * 1.2, 0, cy + 2); sg.addColorStop(0, 'rgba(90,50,30,.35)'); sg.addColorStop(1, 'rgba(90,50,30,0)');
   c.fillStyle = sg; c.fillRect(cx - hw, cy - htt * 2, hw * 2, htt * 2.2);
   // upper lid descends: edge = lerp(top curve, bottom curve, lid)
-  const L = clamp(st.lid, 0, 1), ti = st.tilt * side * -1;
+  const L = clamp(st.lid >= .95 ? st.lid : st.lid * (E.lid_gain || .6), 0, 1), ti = st.tilt * side * -1 * .7;
   const topY = k => lerp(cy - htt * 1.05, cy + hb * .95, L) + ti * hw * .35 * k;
   c.beginPath(); c.moveTo(cx - hw - 3, cy - htt * 3); c.lineTo(cx + hw + 3, cy - htt * 3);
   c.lineTo(cx + hw + 3, topY(1)); c.quadraticCurveTo(cx, topY(0) - (1 - L) * 2, cx - hw - 3, topY(-1)); c.closePath();
@@ -167,7 +167,7 @@ function humanEye(c, E, cx, cy, side, st) {
   c.fillStyle = E.skin; c.fill();
   c.restore();
   // lash line (thick top), following lid
-  const L2 = clamp(st.lid, 0, 1);
+  const L2 = L;
   c.strokeStyle = E.ink; c.lineCap = 'round'; c.lineJoin = 'round';
   c.lineWidth = E.lash;
   const oy = (k) => lerp(cy - htt * 1.0, cy + hb * .9, L2) + ti * hw * .35 * k;
@@ -222,7 +222,7 @@ function vectorMouth(c, M, m, e) {
     c.save(); c.clip();
     if (m.teethMode >= 1) { c.fillStyle = M.teeth; c.beginPath(); c.moveTo(lx, ly - 4); c.bezierCurveTo(lx + hw * .4, upC - 4, rx - hw * .4, upC - 4, rx, ry - 4); c.lineTo(rx, ry + 2); c.bezierCurveTo(rx - hw * .4, upC + Math.min(9, open * .45) + 2, lx + hw * .4, upC + Math.min(9, open * .45) + 2, lx, ly + 2); c.fill(); }
     if (m.teethMode >= 2) { c.fillStyle = M.teeth; c.fillRect(lx, loC - 6, hw * 2, 8); }
-    if (m.tongue > .05) { c.fillStyle = M.tongue; c.beginPath(); c.ellipse(cx + 2, loC + open * .2 - (m.tongueUp || 0) * open * .5, hw * .55, open * .45 + 3, 0, 0, Math.PI * 2); c.fill(); }
+    if (m.tongue > .05 && open > 8) { c.fillStyle = M.tongue; c.beginPath(); c.ellipse(cx + 2, loC + open * .25 - (m.tongueUp || 0) * open * .35, hw * .42, open * .3 + 2, 0, 0, Math.PI * 2); c.fill(); }
     c.restore();
     c.lineWidth = M.line; c.stroke();
     // lower lip shading
@@ -270,7 +270,7 @@ function drawCharacter(c, P, t) {
   const gs = gestureAt(P, t, 'suit_adjust') || gestureAt(P, t, 'collar_tug');
   const gw = gestureAt(P, t, 'warm_rock_lean') || gestureAt(P, t, 'lean_in') || gestureAt(P, t, 'lean_in_conspiratorial');
   const gr = gestureAt(P, t, 'shrug');
-  const gp = gestureAt(P, t, 'point_finger') || gestureAt(P, t, 'golf_swing_mime');
+  const gp = gestureAt(P, t, 'golf_swing_mime');
   // idle + talk motion
   const breathe = Math.sin((t + ph) * 2 * Math.PI / 3.8);
   const damp = 1 - .85 * still;
@@ -287,6 +287,11 @@ function drawCharacter(c, P, t) {
     hy -= 9 * up; hRot += -4.5 * up * (P.side || 1);
     const tug = (p > .3 && p < .75) ? Math.sin((p - .3) / .45 * Math.PI * 4) : 0;
     bodyX += 2.5 * tug * up; bodyY += -3 * Math.abs(tug) * up; shoulder += -6 * up;
+  }
+  if (gp) { // 'watches the drive slice': head follows an imaginary ball up and off to the right, wince
+    const k = win(t, gp.t0, gp.t1, .3, .4), p = clamp(gp.el / gp.d, 0, 1);
+    hRot += (-3 + 9 * smooth(p)) * k; hx += 10 * smooth(p) * k; hy -= 6 * k;
+    extraLook[0] = (.3 + .7 * smooth(p)) * k; extraLook[1] = (-.7 + .4 * smooth(p)) * k; lidAdd += .2 * k; e.brow -= 3 * k; e.browTilt += 4 * k; e.smile -= .4 * k;
   }
   if (gw) { const k = win(t, gw.t0, gw.t1, .5, .5); lean = k; lidAdd += .25 * k; hRot += 2.5 * k; }
   if (gl) { const p = gl.el;
@@ -345,7 +350,9 @@ function drawCharacter(c, P, t) {
   // body over head (collar covers neck)
   c.save(); c.translate(bodyX, bodyY + shoulder * .5);
   c.translate(0, P.size[1]); c.scale(1, bodySY); c.translate(0, -P.size[1]);
-  c.drawImage(IMG[P.key + ':body'], 0, 0); c.restore();
+  c.drawImage(IMG[P.key + ':body'], 0, 0);
+  if (IMG[P.key + ':collar']) c.drawImage(IMG[P.key + ':collar'], 0, 0);
+  c.restore();
   // hand prop for suit adjust
   if (gs && IMG[P.key + ':hand']) {
     const p = gs.el / Math.max(gs.d, .6), Hd = R.hand, hi = IMG[P.key + ':hand'];
@@ -362,7 +369,7 @@ function drawCharacter(c, P, t) {
 // ---------- stage chrome ----------
 function drawBackground(c, t) {
   const bg = IMG['bg'];
-  const s = Math.max(W / bg.width, H / bg.height) * 1.06;
+  const s = Math.max(W / bg.width, H / bg.height) * (TL.bgScale || 1.06);
   const drift = Math.sin(t * .12) * 6;
   c.drawImage(bg, (W - bg.width * s) / 2 + drift, (H - bg.height * s) / 2, bg.width * s, bg.height * s);
   // soft focus: overlay darkened top + vignette applied later
@@ -461,7 +468,7 @@ window.STAGE_INIT = async function (tl) {
   PERF = [];
   for (const [idx, p] of tl.performers.entries()) {
     const key = 'p' + idx; const base = p.dir;
-    for (const L of ['head', 'body', 'jaw', 'hand']) if (p.layers[L]) IMG[key + ':' + L] = await loadImg(base + '/' + p.layers[L]);
+    for (const L of ['head', 'body', 'jaw', 'hand', 'collar']) if (p.layers[L]) IMG[key + ':' + L] = await loadImg(base + '/' + p.layers[L]);
     // silhouette shadow
     const b = IMG[key + ':body'], sz = p.layers.size; const sc = document.createElement('canvas'); sc.width = sz[0] + 60; sc.height = sz[1] + 60;
     const s2 = sc.getContext('2d'); s2.filter = 'blur(14px)'; s2.drawImage(b, 0, 0); s2.drawImage(IMG[key + ':head'], 0, 0);
