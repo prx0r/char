@@ -1,0 +1,14 @@
+{
+ "slug": "reptilian-ralph-middle-management",
+ "style": "pogtown-2d-v1",
+ "sheets": {"heads": "assets/gen/parts/ralph_heads.png", "parts": "assets/gen/parts/ralph_parts.png", "hands": "assets/gen/parts/ralph_hands.png"},
+ "head_views": ["front", "q_left", "profile_left"],
+ "view_yaw": {"front": 0.0, "q_left": -0.5, "profile_left": -1.0},
+ "hands_layout": [{"pose": "rest", "wrist": "top"}, {"pose": "palm", "wrist": "bottom"}, {"pose": "point", "wrist": "bottom"},
+                  {"pose": "fist", "wrist": "bottom"}, {"pose": "pinch", "wrist": "bottom"}, {"pose": "flat", "wrist": "right"}],
+ "collar_hole": true,
+ "secondary": [{"name": "tie", "tol": 46}],
+ "eyes": {"type": "ball", "pupil": "slit-capable", "pupil_color": "#2e140c"},
+ "mouth": {"type": "jaw", "interior": "#3d1414", "tongue": "#c8626a", "teeth": "#f4efd9", "max_open": 0.30},
+ "limits": {"movement": 0.3}
+}
