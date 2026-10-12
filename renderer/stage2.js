@@ -318,6 +318,11 @@ function drawNameTag(c, t) {
     const bw = Math.max(w1, w2) + 70, x = tag.x || 60, y = tag.y || 150;
     roundRect(c, x, y, bw, 128, 26); c.fillStyle = 'rgba(22,16,34,.82)'; c.fill(); c.fillStyle = tag.color || '#7ed957'; roundRect(c, x, y, 14, 128, 7); c.fill();
     c.fillStyle = '#fff'; c.font = '52px Lilita'; c.fillText(tag.name, x + 36, y + 62); c.fillStyle = 'rgba(255,255,255,.75)'; c.font = '600 32px Nunito'; c.fillText(tag.sub, x + 36, y + 104); c.restore(); }
+  // persistent small disclosure labels (e.g. "AI voice: Kokoro stand-in"), bottom of frame
+  for (const lb of TL.labels || []) {
+    c.save(); c.font = '600 26px Nunito'; const w = c.measureText(lb.text).width, x = lb.x || (W - w) / 2, y = lb.y || 1858;
+    roundRect(c, x - 16, y - 30, w + 32, 42, 14); c.fillStyle = 'rgba(22,16,34,.62)'; c.fill();
+    c.fillStyle = 'rgba(255,255,255,.85)'; c.fillText(lb.text, x, y); c.restore(); }
 }
 function cameraAt(t) {
   let z = 1, fx = W / 2, fy = 800;

@@ -1,0 +1,95 @@
+{
+ "name": "greek-how-does-thunder-work",
+ "cast": {
+  "A": "zeus-sky-sovereign",
+  "B": "chris-prior-golf-dad"
+ },
+ "lines": [
+  {
+   "who": "A",
+   "type": "setup",
+   "text": "Mortal. Kneel before the lord of thunder.",
+   "performance": {
+    "expression": "neutral",
+    "gesture": "normal",
+    "look": "partner"
+   },
+   "speech": {
+    "emphasis": 0.5
+   },
+   "pause_after_ms": 280
+  },
+  {
+   "who": "B",
+   "type": "setup",
+   "text": "Lovely. Quick one. How does the thunderbolt actually work?",
+   "performance": {
+    "expression": "neutral",
+    "gesture": "normal",
+    "look": "partner"
+   },
+   "speech": {
+    "emphasis": 0.5
+   },
+   "pause_after_ms": 280
+  },
+  {
+   "who": "A",
+   "type": "setup",
+   "text": "I throw it. It obeys.",
+   "performance": {
+    "expression": "neutral",
+    "gesture": "normal",
+    "look": "partner"
+   },
+   "speech": {
+    "emphasis": 0.5
+   },
+   "pause_after_ms": 280
+  },
+  {
+   "who": "B",
+   "type": "punchline",
+   "text": "Big Tesla fan, me. He made lightning in a lab. Didn't throw anything.",
+   "performance": {
+    "expression": "deadpan",
+    "gesture": "hold still",
+    "look": "audience"
+   },
+   "speech": {
+    "emphasis": 0.9
+   },
+   "pause_after_ms": 900
+  },
+  {
+   "who": "A",
+   "type": "tag",
+   "text": "Who is this Tesla? Bring him before me.",
+   "performance": {
+    "expression": "smug",
+    "gesture": "small gesture",
+    "look": "partner"
+   },
+   "speech": {
+    "emphasis": 0.7
+   },
+   "pause_after_ms": 400
+  },
+  {
+   "who": "B",
+   "type": "closer",
+   "text": "Bit late for that, mate.",
+   "performance": {
+    "expression": "smug",
+    "gesture": "lean in",
+    "look": "audience"
+   },
+   "speech": {
+    "emphasis": 1.0
+   },
+   "pause_after_ms": 1000
+  }
+ ],
+ "source": "chars/worlds/greek/sketches/greek-how-does-thunder-work.json",
+ "visibility": "private"
+}

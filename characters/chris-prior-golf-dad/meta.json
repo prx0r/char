@@ -3,13 +3,9 @@
  "status": "ready",
  "created_at": "2026-10-12T06:45:02+00:00",
  "creator": "char-onboard-v0 (local experiment)",
- "voice": "voxcpm",
- "word_count": 46,
- "beat_count": 4,
+ "voice": "kokoro (bm_george:0.7+bm_lewis:0.3 stand-in; voice cloning off)",
  "source_photo": "/workspace/projects/791a7153-8d05-4c9b-b767-8f281ad46eb0/chris/card/photo.jpg",
  "files": {
-  "character.json": "sha256:6c4f62458af5d43404b3f52247fb3d0225611c17e9029a1a258619fbd5933f1f",
-  "delivery.json": "sha256:a81133559ff0c5de4094cc6ad9bc7b35c2d802c732747ce56094070d826d97b4",
   "rig.json": "sha256:5f0c2503689b624103c0666f43516f33c75c09d600bb92de99d5a6dda33c6e44"
  },
  "lineage": {
@@ -17,5 +13,7 @@
   "parent": null,
   "root": "dad",
   "depth": 1
- }
+ },
+ "graph_source": "chars repo freaks/chris-prior-golf-dad (authoritative; lab copies of character.json/delivery.json removed 2026-10-12: they contained invented biography)",
+ "updated_at": "Mon 2026-10-12 (UTC+07:00)"
 }

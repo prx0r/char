@@ -12,6 +12,19 @@ python3 run.py duet --script scripts/ralph_chris_duet.json             # two-han
 python3 run.py perform --character <slug> --stills 1.0 4.2            # inspect frames only
 ```
 
+Graphs come from the chars repo first (`$CHARS_REPO/freaks/<slug>`, the source of truth); a lab copy under
+`characters/<slug>/` is only a fallback for characters that exist nowhere else. Render one pipeline set instead of
+`delivery.json` with `--set $CHARS_REPO/freaks/<slug>/sets/<scenario>.json`. World sketches from the chars format factory
+(`worlds/<world>/sketches/*.duet.json`) render with `run.py duet --script`. Every render carries an on-screen
+"AI voice: Kokoro-82M preset stand-in" label; real-person packs never use cloned voices.
+
+```
+python3 run.py perform --character chris-prior-golf-dad --set /workspace/work/chars/freaks/chris-prior-golf-dad/sets/chris_tesla_howitworks.json
+python3 run.py duet --script scripts/greek_zeus_chris_thunder.json        # Greek world: Zeus x visiting Chris
+python3 run.py duet --script scripts/prior_family_evening_audit.json      # private prior-family world: Chris x Cathy
+python3 run.py onboard --slug cathy-prior --from-graph cathy-prior --photo <photo crop>   # Cathy rig (photo crop is gitignored)
+```
+
 Pipeline: delivery beats → beat selection to fit ~15 s (ends on the closer; pulls in a beat that
 fires an unused character action) → TTS per beat (trim, measure) → assembled WAV with pauses and
 punchline holds → Rhubarb mouth cues (A–H, X) + RMS envelope → `pipeline/director.py` events

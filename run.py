@@ -21,13 +21,29 @@ LEAD_IN = 0.45
 TAIL = 0.7
 
 def load_graph(slug):
-    """character.json: char lab copy first, else the chars repo (fresh schema). delivery.json: same order, independently
-    (a lab-written delivery can accompany a graph that lives only in the chars repo)."""
-    bases = (os.path.join(ROOT, "characters", slug), os.path.join(CHARS_REPO, "freaks", slug))
+    """character.json: the chars repo pack first (source of truth: freaks/<slug>), else a char-lab copy for
+    characters that only exist here. delivery.json: same order, independently (a lab-written delivery can
+    accompany a graph that lives only in the chars repo)."""
+    bases = (os.path.join(CHARS_REPO, "freaks", slug), os.path.join(ROOT, "characters", slug))
     cj = next((os.path.join(b, "character.json") for b in bases if os.path.exists(os.path.join(b, "character.json"))), None)
     if not cj: raise SystemExit("no character.json for " + slug)
     dj = next((os.path.join(b, "delivery.json") for b in bases if os.path.exists(os.path.join(b, "delivery.json"))), None)
     return json.load(open(cj)), (json.load(open(dj)) if dj else None), os.path.dirname(cj)
+
+def load_set(path):
+    """A pipeline set (chars freaks/<slug>/sets/*.json, human-set.v1) or any delivery-shaped JSON -> beats in
+    delivery shape. The set's own beat types/pauses are kept; performance defaults follow the beat type."""
+    d = json.load(open(path))
+    perf = {"setup": ("neutral", "normal", 0.5), "escalation": ("neutral", "small gesture", 0.6), "punchline": ("deadpan", "hold still", 0.9),
+            "tag": ("annoyed", "small gesture", 0.7), "closer": ("smug", "lean in", 1.0)}
+    beats = []
+    for i, b in enumerate(d["beats"]):
+        e, g, em = perf.get(b.get("type"), perf["setup"])
+        beats.append({"id": b.get("id", "s%d" % (i + 1)), "type": b.get("type", "setup"), "text": b["text"],
+                      "performance": b.get("performance") or {"expression": e, "gesture": g, "look": "audience"},
+                      "speech": b.get("speech") or {"emphasis": b.get("emphasis", em), "pace": "normal"},
+                      "pause_after_ms": int(b.get("pause_after_ms", 300))})
+    return {"beats": beats, "source": os.path.abspath(path), "scenario_id": d.get("scenario_id"), "run_id": d.get("run_id")}
 
 def load_rig(slug):
     d = os.path.join(ROOT, "characters", slug)
@@ -220,6 +236,12 @@ def place_for(rig, x=540, head_top=330, shoulder_frac=0.36, scale=None):
 
 W_FRAME = 1080
 
+def voice_labels(labels):
+    """On-screen disclosure: which TTS spoke. Real-person packs never use a cloned voice."""
+    if any(str(l).startswith("kokoro") for l in labels):
+        return [{"text": "AI voice: Kokoro-82M preset stand-in, not the real person's voice"}]
+    return [{"text": "AI voice: " + ", ".join(sorted(set(str(l).split(":")[0] for l in labels)))}] if labels else []
+
 def performer_v2(slug, rig, ev, cues, env, place, character, base_look=None):
     prof = character.get("profile", {})
     return {"slug": slug, "rig_url": "/characters/%s/rig/rig.json" % slug, "place": place,
@@ -230,10 +252,12 @@ def performer_v2(slug, rig, ev, cues, env, place, character, base_look=None):
 def cmd_perform2(a):
     slug = a.character
     character, delivery, gdir = load_graph(slug)
+    if getattr(a, "set", None):
+        delivery = load_set(a.set)
     character["_slug"] = slug
     rig = ensure_rig(slug)
     meta = rig_meta(slug)
-    out = os.path.join(ROOT, "out", slug); os.makedirs(out, exist_ok=True)
+    out = os.path.join(ROOT, "out", slug + (("__" + delivery["scenario_id"]) if delivery.get("scenario_id") else "")); os.makedirs(out, exist_ok=True)
     t_all = time.time()
     chosen, labels = select_and_synth(character, delivery["beats"], out, a.seconds, slack=0.3, trim=True)
     t_tts = time.time() - t_all
@@ -245,12 +269,14 @@ def cmd_perform2(a):
     tl = {"page": "stage2.html", "fps": FPS, "duration": round(dur, 3), "background": meta.get("stage", "/assets/stage/office.png"), "fadeIn": 0.25,
           "captions": captions(timing),
           "tags": [{"t0": 0.3, "t1": 3.0, "name": meta.get("display_name", character["name"].split(",")[0]), "sub": meta.get("tagline", character.get("species", "")), "color": meta.get("tag_color", "#7ed957")}],
+          "labels": voice_labels(labels),
           "performers": [performer_v2(slug, rig, ev, cues, envelope(wav), place_for(rig, **meta.get("place", {})), character)],
-          "meta": {"beats": [c["beat"]["id"] for c in chosen], "tts": labels, "stack": "oddrig/1"}}
+          "meta": {"beats": [c["beat"]["id"] for c in chosen], "tts": labels, "stack": "oddrig/1",
+                   "graph": gdir, "set": delivery.get("source"), "run_id": delivery.get("run_id")}}
     tlp = os.path.join(out, "timeline_v2.json"); json.dump(tl, open(tlp, "w"), indent=1)
     if a.stills is not None and len(a.stills):
         print(render.still(tlp, a.stills, os.path.join(out, "v2.jpg"))); return
-    mp4 = os.path.join(out, "%s_oddrig_%ds.mp4" % (slug, int(round(dur))))
+    mp4 = os.path.join(out, "%s_oddrig_%ds.mp4" % (os.path.basename(out), int(round(dur))))
     st = render.render(tlp, wav, mp4, workers=a.workers)
     rep = {"mp4": mp4, "duration_s": round(dur, 2), "beats": tl["meta"]["beats"], "tts": labels, "tts_s": round(t_tts, 1), "rhubarb_s": t_rh,
            "clips": [(c["clip"], c["t0"], c.get("why")) for c in ev["clips"] if c.get("why") not in ("idle",) and not str(c.get("why", "")).startswith(("stress", "hand-beat"))],
@@ -306,6 +332,7 @@ def main():
     q = sp.add_parser("perform"); q.add_argument("--character", required=True); q.add_argument("--seconds", type=float, default=15)
     q.add_argument("--seed", type=int, default=11); q.add_argument("--workers", type=int, default=2); q.add_argument("--stills", type=float, nargs="*")
     q.add_argument("--legacy", action="store_true", help="old flat cut-out renderer (stage.js)")
+    q.add_argument("--set", default=None, help="render a pipeline set JSON (chars freaks/<slug>/sets/*.json) instead of delivery.json")
     q = sp.add_parser("rig"); q.add_argument("--character", required=True)
     q = sp.add_parser("onboard"); q.add_argument("--slug", required=True); q.add_argument("--from-graph", default=None); q.add_argument("--prompt", default=None)
     q.add_argument("--photo", default=None); q.add_argument("--reuse-art", action="store_true")

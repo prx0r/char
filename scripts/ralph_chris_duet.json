@@ -3,7 +3,7 @@
  "lines": [
   {"who": "A", "type": "setup", "text": "Mister Prior. Compliance says you must address me as sir.",
    "performance": {"expression": "neutral", "gesture": "normal", "look": "partner"}, "speech": {"emphasis": 0.5}, "pause_after_ms": 250},
-  {"who": "B", "type": "setup", "text": "I'm seventy, Ralph. I don't call my doctor sir.",
+  {"who": "B", "type": "setup", "text": "I'm retired, Ralph. I don't call anyone sir.",
    "performance": {"expression": "smug", "gesture": "normal", "look": "partner"}, "speech": {"emphasis": 0.6}, "pause_after_ms": 300},
   {"who": "A", "type": "setup", "text": "Your Tesla reports to us, you know. Every mile.",
    "performance": {"expression": "annoyed", "gesture": "small gesture", "look": "partner"}, "speech": {"emphasis": 0.7}, "pause_after_ms": 300},

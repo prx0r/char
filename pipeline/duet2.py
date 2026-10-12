@@ -77,7 +77,7 @@ def run(a):
         m = cast[k]["meta"]
         tags.append({"t0": 0.3 + 0.3 * j, "t1": 2.6 + 0.3 * j, "name": m.get("display_name", cast[k]["ch"]["name"].split(",")[0]), "sub": m.get("tagline", ""), "color": m.get("tag_color", "#7ed957"), "x": 50, "y": 140 + 150 * j})
     tl = {"page": "stage2.html", "fps": R.FPS, "duration": round(dur, 3), "background": "/assets/stage/office.png", "fadeIn": 0.25,
-          "captions": R.captions(timing), "shots": shots, "tags": tags, "performers": perf,
+          "captions": R.captions(timing), "shots": shots, "tags": tags, "performers": perf, "labels": R.voice_labels(labels),
           "meta": {"tts": sorted(labels), "lines": len(items), "stack": "oddrig/1"}}
     tlp = os.path.join(out, "timeline.json"); json.dump(tl, open(tlp, "w"), indent=1)
     if a.stills:

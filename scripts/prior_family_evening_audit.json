@@ -1,0 +1,81 @@
+{
+ "name": "prior-family-evening-audit",
+ "cast": {
+  "A": "chris-prior-golf-dad",
+  "B": "cathy-prior"
+ },
+ "lines": [
+  {
+   "who": "B",
+   "type": "setup",
+   "text": "Chris. One sensible biscuit. I've counted them.",
+   "performance": {
+    "expression": "neutral",
+    "gesture": "normal",
+    "look": "partner"
+   },
+   "speech": {
+    "emphasis": 0.5
+   },
+   "pause_after_ms": 280
+  },
+  {
+   "who": "A",
+   "type": "setup",
+   "text": "Broccoli, lentils and a walk today. I'm the healthiest man here.",
+   "performance": {
+    "expression": "neutral",
+    "gesture": "normal",
+    "look": "partner"
+   },
+   "speech": {
+    "emphasis": 0.5
+   },
+   "pause_after_ms": 280
+  },
+  {
+   "who": "B",
+   "type": "setup",
+   "text": "Then why does everyone joke about your weight?",
+   "performance": {
+    "expression": "neutral",
+    "gesture": "normal",
+    "look": "partner"
+   },
+   "speech": {
+    "emphasis": 0.5
+   },
+   "pause_after_ms": 280
+  },
+  {
+   "who": "A",
+   "type": "punchline",
+   "text": "I've investigated, love. I'm carrying a lot of material. What's behind that cushion?",
+   "performance": {
+    "expression": "deadpan",
+    "gesture": "hold still",
+    "look": "audience"
+   },
+   "speech": {
+    "emphasis": 0.9
+   },
+   "pause_after_ms": 900
+  },
+  {
+   "who": "B",
+   "type": "closer",
+   "text": "Shh. He's about to propose.",
+   "performance": {
+    "expression": "smug",
+    "gesture": "lean in",
+    "look": "audience"
+   },
+   "speech": {
+    "emphasis": 1.0
+   },
+   "pause_after_ms": 1000
+  }
+ ],
+ "source": "chars/worlds/prior-family/sketches/prior-family-evening-audit.json",
+ "visibility": "private"
+}
