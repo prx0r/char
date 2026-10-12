@@ -11,7 +11,7 @@ from PIL import Image
 from scipy import ndimage as ndi
 
 
-def key_sheet(path, t0=38.0, t1=95.0):
+def key_sheet(path, t0=48.0, t1=100.0):
     im = np.asarray(Image.open(path).convert("RGB")).astype(np.float32)
     border = np.concatenate([im[:4].reshape(-1, 3), im[-4:].reshape(-1, 3), im[:, :4].reshape(-1, 3), im[:, -4:].reshape(-1, 3)])
     bg = np.median(border, 0)
@@ -30,6 +30,13 @@ def key_sheet(path, t0=38.0, t1=95.0):
     lim = np.where(edge & (spill > 30), g + 30, np.minimum(r, b))
     fg[..., 0] = np.where(edge & (spill > 30), np.minimum(r, lim), r)
     fg[..., 2] = np.where(edge & (spill > 30), np.minimum(b, lim), b)
+    # house style has dark outlines: any semi-transparent edge pixel is outline, so give it the ink colour
+    L0 = fg[..., 0] * 0.299 + fg[..., 1] * 0.587 + fg[..., 2] * 0.114
+    inkpx = fg[(alpha > 0.98) & (L0 < 70)]
+    if len(inkpx) > 50:
+        ink = np.median(inkpx, 0)
+        edge = (alpha > 0.0) & (alpha < 0.85)
+        fg[edge] = ink
     raw = fg.astype(np.uint8)
     fg = demagenta(fg, alpha)
     return fg.astype(np.uint8), alpha, bg, raw
@@ -40,7 +47,11 @@ def demagenta(fg, alpha, dr=26, db=10):
     magenta-hued opaque pixels with the nearest non-magenta foreground colour."""
     r, g, b = fg[..., 0], fg[..., 1], fg[..., 2]
     L = r * 0.299 + g * 0.587 + b * 0.114
+    L = r * 0.299 + g * 0.587 + b * 0.114
     bad = (r - g > dr) & (b - g > db) & (alpha > 0.05)
+    # near the silhouette the bounce light is weaker/desaturated: looser test inside an 9 px band
+    band = ndi.distance_transform_edt(alpha > 0.5) < 18
+    bad |= band & (r - g > 16) & (b - g > -8) & (alpha > 0.05) & (L >= 95)
     out = fg.copy()
     for sel, good in ((bad & (L >= 95), (~bad) & (alpha > 0.9) & (L >= 95)),     # pink rim -> interior colour
                       (bad & (L < 95), (~bad) & (alpha > 0.9) & (L < 95))):      # magenta-tinted ink -> ink

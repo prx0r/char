@@ -1,0 +1,44 @@
+{
+ "name": "idle_still",
+ "schema": "oddclip/1",
+ "loop": true,
+ "duration": 5.0,
+ "layer": "idle",
+ "tags": [
+  "idle.still"
+ ],
+ "tracks": {
+  "chest.sy": [
+   [
+    0,
+    1,
+    "io"
+   ],
+   [
+    2.5,
+    1.006,
+    "io"
+   ],
+   [
+    5,
+    1
+   ]
+  ],
+  "shoulder_*.ty": [
+   [
+    0,
+    0,
+    "io"
+   ],
+   [
+    2.5,
+    -0.004,
+    "io"
+   ],
+   [
+    5,
+    0
+   ]
+  ]
+ }
+}

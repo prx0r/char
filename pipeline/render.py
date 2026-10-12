@@ -15,14 +15,15 @@ def serve(port):
     threading.Thread(target=httpd.serve_forever, daemon=True).start()
     return httpd
 
-def _worker(port, tl_url, f0, f1, out, fps, q):
+def _worker(port, tl_url, f0, f1, out, fps, q, page="stage.html"):
     from playwright.sync_api import sync_playwright
     ff = subprocess.Popen(["ffmpeg", "-nostdin", "-y", "-loglevel", "error", "-f", "image2pipe", "-framerate", str(fps), "-c:v", "mjpeg", "-i", "-",
                            "-c:v", "libx264", "-preset", "medium", "-crf", "17", "-pix_fmt", "yuv420p", "-r", str(fps), out], stdin=subprocess.PIPE)
     with sync_playwright() as p:
         b = p.chromium.launch(executable_path=CHROMIUM, args=["--no-sandbox", "--disable-gpu", "--force-color-profile=srgb"])
         pg = b.new_page(viewport={"width": 1080, "height": 1920})
-        pg.goto("http://127.0.0.1:%d/renderer/stage.html" % port)
+        pg.on("pageerror", lambda e: print("pageerror:", e))
+        pg.goto("http://127.0.0.1:%d/renderer/%s" % (port, page))
         tl = json.load(open(tl_url))
         pg.evaluate("tl => window.STAGE_INIT(tl)", tl)
         for i in range(f0, f1):
@@ -33,6 +34,7 @@ def _worker(port, tl_url, f0, f1, out, fps, q):
 
 def render(timeline_path, audio_path, out_mp4, workers=2, port=8765, q=0.93, frames=None):
     tl = json.load(open(timeline_path))
+    page = tl.get("page", "stage.html")
     fps = tl["fps"]; n = int(round(tl["duration"] * fps)) if frames is None else frames
     httpd = serve(port)
     t = time.time()
@@ -43,7 +45,7 @@ def render(timeline_path, audio_path, out_mp4, workers=2, port=8765, q=0.93, fra
         f0, f1 = w * per, min(n, (w + 1) * per)
         if f0 >= f1: continue
         part = os.path.join(tmp, "part%02d.mp4" % w); chunks.append(part)
-        pr = Process(target=_worker, args=(port, timeline_path, f0, f1, part, fps, q)); pr.start(); procs.append(pr)
+        pr = Process(target=_worker, args=(port, timeline_path, f0, f1, part, fps, q, page)); pr.start(); procs.append(pr)
     for pr in procs: pr.join()
     lst = os.path.join(tmp, "list.txt")
     open(lst, "w").write("".join("file '%s'\n" % os.path.abspath(c) for c in chunks))
@@ -71,7 +73,7 @@ def still(timeline_path, t_sec, out_png, port=8766):
         pg = b.new_page(viewport={"width": 1080, "height": 1920})
         pg.on("console", lambda m: print("console:", m.text))
         pg.on("pageerror", lambda e: print("pageerror:", e))
-        pg.goto("http://127.0.0.1:%d/renderer/stage.html" % port)
+        pg.goto("http://127.0.0.1:%d/renderer/%s" % (port, tl.get("page", "stage.html")))
         pg.evaluate("tl => window.STAGE_INIT(tl)", tl)
         for k, tt in enumerate(ts):
             d = pg.evaluate("([i,q]) => window.STAGE_FRAME(i,q)", [int(round(tt * tl["fps"])), 0.92])

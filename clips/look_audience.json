@@ -1,0 +1,23 @@
+{
+ "name": "look_audience",
+ "schema": "oddclip/1",
+ "duration": 0.6,
+ "layer": "look",
+ "tags": [
+  "gaze.audience"
+ ],
+ "tracks": {
+  "face.gaze_x": [
+   [
+    0,
+    0
+   ]
+  ],
+  "face.gaze_y": [
+   [
+    0,
+    0
+   ]
+  ]
+ }
+}

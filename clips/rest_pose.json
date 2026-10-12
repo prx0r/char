@@ -1,0 +1,30 @@
+{
+ "name": "rest_pose",
+ "schema": "oddclip/1",
+ "loop": true,
+ "duration": 1,
+ "layer": "base",
+ "tags": [
+  "pose.rest"
+ ],
+ "tracks": {
+  "upper_arm_*.rot": [
+   [
+    0,
+    3
+   ]
+  ],
+  "lower_arm_*.rot": [
+   [
+    0,
+    -8
+   ]
+  ],
+  "hand_*.rot": [
+   [
+    0,
+    -4
+   ]
+  ]
+ }
+}

@@ -1,0 +1,78 @@
+{
+ "name": "beat_r",
+ "schema": "oddclip/1",
+ "duration": 0.7,
+ "layer": "talk",
+ "tags": [
+  "talk.beat"
+ ],
+ "mirror_of": null,
+ "fade_in": 0.04,
+ "fade_out": 0.08,
+ "principles": "small lift (anticipation), strike on the stressed syllable at 0.22 s, rebound, settle",
+ "tracks": {
+  "lower_arm_r.rot": [
+   [
+    0,
+    0,
+    "o"
+   ],
+   [
+    0.1,
+    -9,
+    "i"
+   ],
+   [
+    0.22,
+    5,
+    "o"
+   ],
+   [
+    0.4,
+    -1.5,
+    "io"
+   ],
+   [
+    0.7,
+    0
+   ]
+  ],
+  "hand_r.rot": [
+   [
+    0,
+    0,
+    "o"
+   ],
+   [
+    0.12,
+    -10,
+    "i"
+   ],
+   [
+    0.24,
+    9,
+    "o"
+   ],
+   [
+    0.45,
+    0
+   ]
+  ],
+  "upper_arm_r.rot": [
+   [
+    0,
+    0,
+    "io"
+   ],
+   [
+    0.22,
+    -2,
+    "io"
+   ],
+   [
+    0.7,
+    0
+   ]
+  ]
+ }
+}

@@ -1,0 +1,164 @@
+{
+ "name": "point_up_r",
+ "schema": "oddclip/1",
+ "duration": 1.7,
+ "hold_at": 0.9,
+ "layer": "gesture",
+ "tags": [
+  "gesture.command",
+  "gesture.conduct",
+  "talk.emphasis"
+ ],
+ "fade_in": 0.05,
+ "fade_out": 0.12,
+ "principles": "elbow drops first, finger rises with overshoot, holds still, drops with follow-through",
+ "tracks": {
+  "upper_arm_r.rot": [
+   [
+    0,
+    0,
+    "io"
+   ],
+   [
+    0.12,
+    5,
+    "o"
+   ],
+   [
+    0.4,
+    -24,
+    "o"
+   ],
+   [
+    0.54,
+    -19,
+    "io"
+   ],
+   [
+    1.25,
+    -19,
+    "io"
+   ],
+   [
+    1.7,
+    0
+   ]
+  ],
+  "lower_arm_r.rot": [
+   [
+    0,
+    0,
+    "io"
+   ],
+   [
+    0.12,
+    10,
+    "o"
+   ],
+   [
+    0.4,
+    -150,
+    "o"
+   ],
+   [
+    0.54,
+    -140,
+    "io"
+   ],
+   [
+    1.25,
+    -140,
+    "io"
+   ],
+   [
+    1.7,
+    0
+   ]
+  ],
+  "hand_r.pose": [
+   [
+    0,
+    "rest",
+    "s"
+   ],
+   [
+    0.24,
+    "point",
+    "s"
+   ],
+   [
+    1.45,
+    "rest",
+    "s"
+   ]
+  ],
+  "hand_r.rot": [
+   [
+    0,
+    0,
+    "io"
+   ],
+   [
+    0.4,
+    -6,
+    "o"
+   ],
+   [
+    0.56,
+    2,
+    "io"
+   ],
+   [
+    1.25,
+    2,
+    "io"
+   ],
+   [
+    1.7,
+    0
+   ]
+  ],
+  "face.brow": [
+   [
+    0,
+    0,
+    "io"
+   ],
+   [
+    0.4,
+    0.8,
+    "o"
+   ],
+   [
+    1.25,
+    0.8,
+    "io"
+   ],
+   [
+    1.7,
+    0
+   ]
+  ],
+  "head.rot": [
+   [
+    0,
+    0,
+    "io"
+   ],
+   [
+    0.4,
+    -2,
+    "io"
+   ],
+   [
+    1.25,
+    -2,
+    "io"
+   ],
+   [
+    1.7,
+    0
+   ]
+  ]
+ }
+}

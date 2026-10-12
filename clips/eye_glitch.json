@@ -1,0 +1,148 @@
+{
+ "name": "eye_glitch",
+ "schema": "oddclip/1",
+ "duration": 1.1,
+ "layer": "reaction",
+ "tags": [
+  "reaction.glitch",
+  "reaction.flicker",
+  "reaction.reveal"
+ ],
+ "fade_in": 0.0,
+ "fade_out": 0.12,
+ "principles": "instant pop (no anticipation: it's involuntary), head squash-stretch, slit pupils hold, lids recover",
+ "tracks": {
+  "face.slit": [
+   [
+    0,
+    0,
+    "o"
+   ],
+   [
+    0.06,
+    1,
+    "l"
+   ],
+   [
+    0.85,
+    1,
+    "io"
+   ],
+   [
+    1.1,
+    0
+   ]
+  ],
+  "fx.glitch": [
+   [
+    0,
+    0,
+    "l"
+   ],
+   [
+    0.03,
+    1,
+    "l"
+   ],
+   [
+    0.38,
+    0
+   ]
+  ],
+  "head.tx": [
+   [
+    0,
+    0,
+    "s"
+   ],
+   [
+    0.033,
+    0.014,
+    "s"
+   ],
+   [
+    0.066,
+    -0.012,
+    "s"
+   ],
+   [
+    0.1,
+    0.009,
+    "s"
+   ],
+   [
+    0.133,
+    -0.006,
+    "s"
+   ],
+   [
+    0.2,
+    0,
+    "s"
+   ]
+  ],
+  "head.sx": [
+   [
+    0,
+    1,
+    "o"
+   ],
+   [
+    0.05,
+    0.96,
+    "o"
+   ],
+   [
+    0.18,
+    1.025,
+    "io"
+   ],
+   [
+    0.34,
+    1
+   ]
+  ],
+  "head.sy": [
+   [
+    0,
+    1,
+    "o"
+   ],
+   [
+    0.05,
+    1.05,
+    "o"
+   ],
+   [
+    0.18,
+    0.975,
+    "io"
+   ],
+   [
+    0.34,
+    1
+   ]
+  ],
+  "face.lid": [
+   [
+    0,
+    0,
+    "o"
+   ],
+   [
+    0.06,
+    -0.3,
+    "io"
+   ],
+   [
+    0.55,
+    -0.28,
+    "io"
+   ],
+   [
+    0.9,
+    0
+   ]
+  ]
+ }
+}

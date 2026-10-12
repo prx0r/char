@@ -1,0 +1,173 @@
+{
+ "name": "gesture_talk_r",
+ "schema": "oddclip/1",
+ "duration": 2.4,
+ "hold_at": 1.25,
+ "layer": "gesture",
+ "tags": [
+  "gesture.explain",
+  "gesture.offer"
+ ],
+ "fade_in": 0.06,
+ "fade_out": 0.12,
+ "principles": "drop + elbow out (anticipation), raise with overshoot, settle, hold with micro-beats, return",
+ "tracks": {
+  "upper_arm_r.rot": [
+   [
+    0,
+    0,
+    "io"
+   ],
+   [
+    0.14,
+    5,
+    "o"
+   ],
+   [
+    0.44,
+    -16,
+    "o"
+   ],
+   [
+    0.62,
+    -12,
+    "io"
+   ],
+   [
+    1.25,
+    -12,
+    "io"
+   ],
+   [
+    1.9,
+    -12,
+    "io"
+   ],
+   [
+    2.4,
+    0
+   ]
+  ],
+  "lower_arm_r.rot": [
+   [
+    0,
+    0,
+    "io"
+   ],
+   [
+    0.14,
+    8,
+    "o"
+   ],
+   [
+    0.44,
+    -112,
+    "o"
+   ],
+   [
+    0.6,
+    -102,
+    "io"
+   ],
+   [
+    1.25,
+    -104,
+    "io"
+   ],
+   [
+    1.9,
+    -102,
+    "io"
+   ],
+   [
+    2.4,
+    0
+   ]
+  ],
+  "hand_r.rot": [
+   [
+    0,
+    0,
+    "io"
+   ],
+   [
+    0.44,
+    12,
+    "o"
+   ],
+   [
+    0.62,
+    6,
+    "io"
+   ],
+   [
+    1.9,
+    6,
+    "io"
+   ],
+   [
+    2.4,
+    0
+   ]
+  ],
+  "hand_r.pose": [
+   [
+    0,
+    "rest",
+    "s"
+   ],
+   [
+    0.3,
+    "palm",
+    "s"
+   ],
+   [
+    2.05,
+    "rest",
+    "s"
+   ]
+  ],
+  "chest.rot": [
+   [
+    0,
+    0,
+    "io"
+   ],
+   [
+    0.44,
+    1.2,
+    "io"
+   ],
+   [
+    1.9,
+    1.2,
+    "io"
+   ],
+   [
+    2.4,
+    0
+   ]
+  ],
+  "shoulder_r.ty": [
+   [
+    0,
+    0,
+    "io"
+   ],
+   [
+    0.44,
+    -0.012,
+    "io"
+   ],
+   [
+    1.9,
+    -0.012,
+    "io"
+   ],
+   [
+    2.4,
+    0
+   ]
+  ]
+ }
+}

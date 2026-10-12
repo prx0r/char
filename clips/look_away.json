@@ -1,0 +1,57 @@
+{
+ "name": "look_away",
+ "schema": "oddclip/1",
+ "duration": 1.6,
+ "hold_at": 0.9,
+ "layer": "look",
+ "tags": [
+  "gaze.away"
+ ],
+ "fade_in": 0.0,
+ "fade_out": 0.0,
+ "principles": "eyes lead (0.08 s), head follows on a spring with overshoot",
+ "tracks": {
+  "face.gaze_x": [
+   [
+    0,
+    0,
+    "o"
+   ],
+   [
+    0.08,
+    0.85,
+    "io"
+   ],
+   [
+    1.3,
+    0.85,
+    "io"
+   ],
+   [
+    1.6,
+    0
+   ]
+  ],
+  "face.gaze_y": [
+   [
+    0,
+    0,
+    "o"
+   ],
+   [
+    0.08,
+    0.2,
+    "io"
+   ],
+   [
+    1.3,
+    0.2,
+    "io"
+   ],
+   [
+    1.6,
+    0
+   ]
+  ]
+ }
+}

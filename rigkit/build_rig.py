@@ -315,9 +315,12 @@ def build(slug):
         rgba = v["rgba"]; hh, ww = rgba.shape[:2]
         img = save_tex("head_" + v["name"], rgba)
         # eye mask texture (both painted eye interiors) for clipped procedural eyes
-        em = np.zeros((hh, ww), np.uint8)
-        for e in v["eyes"]: em[e["mask"]] = 255
-        Image.fromarray(em, "L").save(os.path.join(tex, "eyes_" + v["name"] + ".png"))
+        em = np.zeros((hh, ww), bool)
+        for e in v["eyes"]: em |= e["mask"]
+        em = ndi.binary_dilation(em, iterations=2)
+        ema = ndi.gaussian_filter(em.astype(float), 0.8)
+        rgba_m = np.zeros((hh, ww, 4), np.uint8); rgba_m[..., :3] = 255; rgba_m[..., 3] = (np.clip(ema, 0, 1) * 255).astype(np.uint8)
+        Image.fromarray(rgba_m, "RGBA").save(os.path.join(tex, "eyes_" + v["name"] + ".png"))
         m = grid_mesh(rgba[..., 3] / 255.0, 10, v["origin"], head_w(v), (ww, hh))
         # parallax depth per vertex: 0 at the silhouette, 1 deep inside (features slide on turns)
         ed = ndi.distance_transform_edt(rgba[..., 3] > 127); dn = ed / max(1, ed.max())
@@ -380,7 +383,13 @@ def build(slug):
             if mirror:  # keep triangle winding irrelevant (no culling); uvs unchanged since geometry mirrored
                 pass
             hands[side][pose] = "hand_%s_%s" % (side, pose)
-            attachments["hand_%s_%s" % (side, pose)] = {"type": "mesh", "image": img, "size": [ww, hh], **mesh}
+            # grip point = centroid of the half of the hand farthest from the wrist (rotated like the mesh)
+            a_ = rgba[..., 3] > 127; ys_, xs_ = np.nonzero(a_)
+            ddx, ddy = xs_ - wx, ys_ - wy; dist = np.hypot(ddx, ddy); far = dist > np.median(dist)
+            gx, gy = float(ddx[far].mean()), float(ddy[far].mean())
+            if mirror: gx = -gx
+            grip = [round(gx * cr - gy * sr, 2), round(gx * sr + gy * cr, 2)]
+            attachments["hand_%s_%s" % (side, pose)] = {"type": "mesh", "image": img, "size": [ww, hh], "grip": grip, **mesh}
 
     # ---------------- face description per view ----------------
     face_views = []
