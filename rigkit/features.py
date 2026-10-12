@@ -64,21 +64,33 @@ def eye_blobs(rgb, alpha, max_eyes=2):
     ys, xs = np.nonzero(alpha > 0.5); top, bot = ys.min(), ys.max()
     region = np.zeros_like(alpha, bool); region[top:int(top + (bot - top) * 0.62)] = True
     ed = edge_distance(alpha)
-    bright = (L > 208) & (alpha > 0.9) & region
+    bright = (L > 200) & (alpha > 0.9) & region
     bright = ndi.binary_opening(bright, iterations=1)
     lab, n = ndi.label(bright)
     cands = []
+    head_area = float((alpha > 0.5).sum())
     for i in range(1, n + 1):
         m = lab == i
         a = m.sum()
-        if a < 250: continue
+        if a < max(40, 0.0008 * head_area) or a > 0.06 * head_area: continue
         m2 = ndi.binary_fill_holes(ndi.binary_closing(m, iterations=3))
         yy, xx = np.nonzero(m2)
         h, w = np.ptp(yy) + 1, np.ptp(xx) + 1
         fill = m2.sum() / float(h * w)
         if fill < 0.45 or max(h, w) / max(1, min(h, w)) > 3.2: continue
+        lm = L[m2]                              # a painted eye has a darker pupil/iris inside; hair curls and teeth mostly do not
+        dark = max((lm < 95).mean(), (lm < np.median(lm) - 70).mean() * 0.8)
+        if dark < 0.03: continue
         cands.append((m2.sum(), m2))
     cands.sort(key=lambda c: -c[0])
+    # prefer a pair at a similar height
+    if len(cands) > 2:
+        cy = [np.nonzero(m)[0].mean() for _, m in cands]; best = None
+        for i in range(len(cands)):
+            for j in range(i + 1, len(cands)):
+                dyv = abs(cy[i] - cy[j]); sc = dyv - 0.002 * (cands[i][0] + cands[j][0])
+                if best is None or sc < best[0]: best = (sc, i, j)
+        cands = [cands[best[1]], cands[best[2]]]
     eyes = []
     for a, m in cands[:max_eyes]:
         if eyes and a < 0.12 * eyes[0]["area"]: break
@@ -174,3 +186,46 @@ def mediapipe_face(rgb):
 MP_LEFT_EYE = [33, 7, 163, 144, 145, 153, 154, 155, 133, 173, 157, 158, 159, 160, 161, 246]   # subject's right eye (image left)
 MP_RIGHT_EYE = [362, 382, 381, 380, 374, 373, 390, 249, 263, 466, 388, 387, 386, 385, 384, 398]
 MP_LIPS_OUTER = [61, 146, 91, 181, 84, 17, 314, 405, 321, 375, 291, 409, 270, 269, 267, 0, 37, 39, 40, 185]
+
+
+MP_INNER_LIPS = [78, 191, 80, 81, 82, 13, 312, 311, 310, 415, 308, 324, 318, 402, 317, 14, 87, 178, 88, 95]
+
+
+def mp_features(rgb, alpha, P):
+    """Eyes (masks from the eye contours) + mouth line (inner-lip midline) from MediaPipe face landmarks.
+    Occluded eyes (far eye in a turned view) are dropped by a visibility test: the polygon must be mostly
+    inside the silhouette and contain light sclera pixels."""
+    import cv2
+    H, W = alpha.shape
+    L = lum(rgb.astype(float))
+    eyes = []
+    for idx in (MP_LEFT_EYE, MP_RIGHT_EYE):
+        poly = np.round(P[idx]).astype(np.int32)
+        m = np.zeros((H, W), np.uint8); cv2.fillPoly(m, [poly], 1); m = m.astype(bool)
+        a = m.sum()
+        if a < 25: continue
+        inside = (alpha[m] > 0.5).mean()
+        light = (L[m] > 170).mean()
+        if inside < 0.9 or light < 0.12: continue
+        yy, xx = np.nonzero(m)
+        px = rgb[m & (L > 150)]
+        eyes.append({"area": int(a), "mask": m, "cx": float(xx.mean()), "cy": float(yy.mean()), "rx": float(np.ptp(xx) / 2 + 0.5), "ry": float(np.ptp(yy) / 2 + 0.5),
+                     "bbox": [int(xx.min()), int(yy.min()), int(xx.max()) + 1, int(yy.max()) + 1], "color": [int(v) for v in np.median(px, 0)] if len(px) else [245, 242, 235]})
+    eyes.sort(key=lambda e: e["cx"])
+    lips = P[MP_INNER_LIPS]
+    upper = lips[:11]; lower = lips[[0] + list(range(11, 20)) + [10]]
+    mid = (np.concatenate([upper, lower]))
+    xs, ys = mid[:, 0], mid[:, 1]
+    mouth = None
+    if np.ptp(xs) > 8:
+        c = np.polyfit(xs, ys, 2)
+        x0, x1 = float(P[61][0]), float(P[291][0])
+        if x0 > x1: x0, x1 = x1, x0
+        mouth = {"coef": [float(v) for v in c], "x0": x0, "x1": x1, "cy": float(np.polyval(c, (x0 + x1) / 2))}
+        # surrounding colour (beards etc.) for painting out the drawn mouth
+        ring = np.zeros((H, W), bool); cy_ = int(mouth["cy"]); hw = int((x1 - x0) / 2) + 6
+        ring[max(0, cy_ - hw // 2 - 8):cy_ + hw // 2 + 8, max(0, int(x0) - 10):int(x1) + 10] = True
+        core = np.zeros((H, W), bool); core[max(0, cy_ - hw // 3):cy_ + hw // 3, int(x0):int(x1)] = True
+        sel = ring & ~core & (alpha > 0.9) & (L > 60)
+        mouth["fill"] = [int(v) for v in np.median(rgb[sel], 0)] if sel.any() else None
+    return eyes, mouth

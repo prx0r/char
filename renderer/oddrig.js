@@ -204,7 +204,7 @@ class Rig {
       const lid = clamp(Math.max(F.lid + asym * .5, F.blink), -0.05, 1.0);
       if (E.type === 'human') {
         t.fillStyle = E.white || '#fbf8f2'; t.fillRect(cx - rx, cy - ry, 2 * rx, 2 * ry);
-        const ir = Math.min(e.rx, e.ry) * (E.iris_scale || 0.62);
+        const ir = Math.max(e.ry * (E.iris_scale || 0.95), e.rx * .4);
         const ix = cx + lookX * e.rx * .38, iy = cy + F.look[1] * e.ry * .3;
         t.fillStyle = E.iris || '#6b4a2e'; t.beginPath(); t.ellipse(ix, iy, ir * Math.min(1, e.rx / e.ry * 1.1), ir, 0, 0, 7); t.fill();
         t.fillStyle = '#1a100a'; t.beginPath(); t.ellipse(ix, iy, ir * .48 * F.pup, ir * .48 * F.pup, 0, 0, 7); t.fill();
@@ -292,7 +292,8 @@ class Rig {
     } else {
       // vector mouth: paint out the drawn mouth with skin, then draw the shape
       const cx = (x0 + x1) / 2, cy = lineY(cx), hw0 = (x1 - x0) / 2;
-      c.save(); c.fillStyle = rgb(v.skin); c.beginPath(); c.ellipse(cx, cy, hw0 * 1.12, Math.max(10, hw0 * .38), 0, 0, 7); c.filter = 'blur(2px)'; c.fill(); c.restore();
+      if (mo.transferred && m.open * Dmax < 1.2) return;   // transferred (undetected) mouth: leave the painting alone when closed
+      if (!mo.transferred) { c.save(); c.fillStyle = rgb(mo.fill || v.skin); c.filter = 'blur(2px)'; c.beginPath(); c.ellipse(cx, cy, hw0 * 1.12, Math.max(8, hw0 * .32), 0, 0, 7); c.fill(); c.restore(); }
       const hw = hw0 * m.wide * (1 - m.round * .14), open = m.open * Dmax, smile = F.smile || 0;
       const lx = cx - hw, rx = cx + hw, ly = cy - smile * hw * .12, ry = ly;
       c.strokeStyle = rgb(v.ink); c.lineCap = 'round'; c.lineJoin = 'round'; c.lineWidth = Math.max(3, hw * .08);

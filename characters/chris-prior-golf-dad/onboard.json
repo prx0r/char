@@ -1,0 +1,54 @@
+{
+ "slug": "chris-prior-golf-dad",
+ "style": "pogtown-2d-v1",
+ "sheets": {
+  "heads": "assets/gen/parts/chris-prior-golf-dad_heads.png",
+  "parts": "assets/gen/parts/chris-prior-golf-dad_parts.png",
+  "hands": "assets/gen/parts/chris-prior-golf-dad_hands.png"
+ },
+ "head_views": [
+  "front",
+  "q_left",
+  "profile_left"
+ ],
+ "view_yaw": {
+  "front": 0.0,
+  "q_left": -0.5,
+  "profile_left": -1.0
+ },
+ "hands_layout": [
+  {
+   "pose": "rest",
+   "wrist": "top"
+  },
+  {
+   "pose": "palm",
+   "wrist": "bottom"
+  },
+  {
+   "pose": "point",
+   "wrist": "bottom"
+  },
+  {
+   "pose": "fist",
+   "wrist": "bottom"
+  },
+  {
+   "pose": "pinch",
+   "wrist": "bottom"
+  },
+  {
+   "pose": "flat",
+   "wrist": "right"
+  }
+ ],
+ "collar_hole": true,
+ "secondary": [],
+ "eyes": {
+  "type": "human"
+ },
+ "mouth": {
+  "type": "vector",
+  "max_open": 0.07
+ }
+}

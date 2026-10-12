@@ -38,11 +38,11 @@ def synth_beat(character, beat, wav, voice_override=None):
     v = voice_override or character.get("voice", {})
     if v.get("provider") == "voxcpm" and os.environ.get("VOXCPM_OK") != "1":
         # VoxCPM2 (2B) is OOM-killed on this 8 GB CPU box; set VOXCPM_OK=1 on a bigger machine.
-        v = json.load(open(os.path.join(ROOT, "characters", character["_slug"], "rig.json"))).get("voice_fallback", v)
+        v = rig_meta(character["_slug"]).get("voice_fallback", v)
     if v.get("provider") == "edge-tts" and os.environ.get("EDGE_TTS_OK") != "1":
         # edge-tts returns HTTP 403 from this sandbox (see experiments/CAPABILITY_REPORT.md);
         # use the rig's local stand-in voice and label it honestly.
-        v = json.load(open(os.path.join(ROOT, "characters", character["_slug"], "rig.json"))).get("voice_fallback", v)
+        v = rig_meta(character["_slug"]).get("voice_fallback", v)
     prof = character.get("profile", {})
     pace = float(prof.get("pace", 1.0))
     if v.get("provider") == "voxcpm":
@@ -205,9 +205,16 @@ def ensure_rig(slug, rebuild=False):
     return json.load(open(rig_path(slug)))
 
 def place_for(rig, x=540, head_top=330, shoulder_frac=0.36, scale=None):
+    """Frame waist-up: shoulders = shoulder_frac of the width, head top at head_top; then make sure the bottom
+    of the art (where the drawing stops) is below the frame by moving down, then scaling up."""
     s = scale or (W_FRAME * shoulder_frac / rig["unit"])
     root = next(b for b in rig["skeleton"]["bones"] if b["name"] == "root")
-    return {"x": x, "y": round(head_top + (root["y"] - rig["size_hint"]["top"]) * s, 1), "scale": round(s, 4)}
+    top = rig["size_hint"]["top"]; bottom = rig["size_hint"].get("art_bottom", rig["size_hint"]["bottom"])
+    for _ in range(40):
+        if head_top + (bottom - top) * s >= 1960: break
+        if head_top < 470: head_top += 12
+        else: s *= 1.02
+    return {"x": x, "y": round(head_top + (root["y"] - top) * s, 1), "scale": round(s, 4)}
 
 W_FRAME = 1080
 

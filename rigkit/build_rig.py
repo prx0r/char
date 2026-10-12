@@ -101,8 +101,8 @@ def build(slug):
     torso = max(comps, key=lambda c: c["area"])
     tx0, ty0, tx1, ty1 = torso["bbox"]; tcx = (tx0 + tx1) / 2
     rest = [c for c in comps if c is not torso]
-    head_ref = min([c for c in rest if c["centroid"][1] < ty0 + 40 and abs(c["centroid"][0] - tcx) < (tx1 - tx0) * 0.3],
-                   key=lambda c: c["centroid"][1], default=None)
+    head_ref = max([c for c in rest if c["centroid"][1] < ty0 + 40 and abs(c["centroid"][0] - tcx) < (tx1 - tx0) * 0.3],
+                   key=lambda c: c["area"], default=None)
     arms = sorted([c for c in rest if c["h"] / c["w"] > 2.4 and c["h"] > 0.5 * torso["h"]], key=lambda c: c["centroid"][0])
     hips = max([c for c in rest if c["bbox"][1] > ty1 - 0.25 * torso["h"] and abs(c["centroid"][0] - tcx) < torso["w"] * 0.3], key=lambda c: c["area"], default=None)
     ref_hands = [c for c in rest if c not in arms and c is not head_ref and c is not hips and c["area"] < torso["area"] * 0.2]
@@ -122,7 +122,10 @@ def build(slug):
 
     # collar hole: flood from the first non-ink pixel below the top outline at the centre column
     hole = np.zeros_like(ta, bool); collar_back = np.zeros_like(ta, bool)
-    if cfg.get("collar_hole", True):
+    col0 = int(tw / 2); ys_c = np.nonzero(ta[:, col0] > 0.5)[0]
+    notch = len(ys_c) and ys_c.min() > 0.04 * th          # neck opening already transparent on the sheet
+    report["landmarks"]["neck_notch"] = bool(notch)
+    if cfg.get("collar_hole", True) and not notch:
         col = int(tw / 2); L = F.lum(trgb.astype(float)); y = 0
         while y < th and ta[y, col] < 0.5: y += 1
         # colour runs down the centre column; the collar opening is the first non-ink run >= 12 px
@@ -147,6 +150,18 @@ def build(slug):
         hy, hx = np.nonzero(hole)
         neck_base = (tx0 + hx.mean(), ty0 + hy.mean() + 0.25 * np.ptp(hy))
         hole_w = np.ptp(hx)
+    elif notch:
+        # the notch: transparent pixels inside the torso's top band, enclosed left/right by cloth
+        band = ta[: int(th * 0.25)] < 0.5; rows_ = []
+        for yy in range(band.shape[0]):
+            xs_ = np.nonzero(ta[yy] > 0.5)[0]
+            if len(xs_) < 2: continue
+            inside = band[yy, xs_.min():xs_.max()]
+            if inside[int(len(inside) * 0.3):int(len(inside) * 0.7)].any(): rows_.append(yy)
+        ys_n = np.array(rows_) if rows_ else np.array([int(th * 0.05)])
+        nb_y = ys_c.min()
+        neck_base = (tx0 + col0, ty0 + nb_y - 0.1 * (nb_y - ys_n.min()))
+        hole_w = 0.3 * tw
     else:
         tcx_, ttop = F.top_center(ta); neck_base = (tx0 + tcx_, ty0 + ttop + 0.06 * th); hole_w = 0.3 * tw
     report["landmarks"]["collar_hole_px"] = int(hole.sum())
@@ -205,11 +220,30 @@ def build(slug):
         rgb, a = rgba[..., :3], rgba[..., 3] / 255.0
         bx, by = F.bottom_center(a)
         cy_, neck_w, wide = F.chin_row(a)
-        eyes = F.eye_blobs(rgb, a)
-        mp = F.mediapipe_face(rgb)
-        mouth = F.mouth_line(rgb, a, eyes, cy_)
+        mp = F.mediapipe_face(rgb) if cfg.get("mediapipe", True) else None
+        eyes, mouth = (F.mp_features(rgb, a, mp) if mp is not None else ([], None))
+        if mp is None or not eyes:
+            eyes = F.eye_blobs(rgb, a)
+        if mouth is None:
+            mouth = F.mouth_line(rgb, a, eyes, cy_)
         views.append({"name": name, "rgba": rgba, "bottom": (bx, by), "chin_y": cy_, "neck_w": neck_w, "eyes": eyes, "mouth": mouth,
                       "skin": F.skin_color(rgb, a, eyes), "ink": F.ink_color(rgb, a), "mediapipe": mp is not None})
+    # vector mouths: a view without a MediaPipe mouth gets the front mouth transferred through the eye frame
+    if cfg.get("mouth", {}).get("type", "jaw") != "jaw" and views[0]["mediapipe"] and views[0]["mouth"] and len(views[0]["eyes"]) == 2:
+        f0 = views[0]; fe = f0["eyes"]; fmid = ((fe[0]["cx"] + fe[1]["cx"]) / 2, (fe[0]["cy"] + fe[1]["cy"]) / 2); fd = fe[1]["cx"] - fe[0]["cx"]
+        fm = f0["mouth"]; fmc = ((fm["x0"] + fm["x1"]) / 2, fm["cy"]); fw = fm["x1"] - fm["x0"]
+        for v in views[1:]:
+            if v["mediapipe"] or not v["eyes"]: 
+                continue
+            e = v["eyes"]
+            if len(e) == 2:
+                mid = ((e[0]["cx"] + e[1]["cx"]) / 2, (e[0]["cy"] + e[1]["cy"]) / 2); sx = (e[1]["cx"] - e[0]["cx"]) / fd
+                yaw = cfg.get("view_yaw", {}).get(v["name"], 0)
+                cx = mid[0] + (fmc[0] - fmid[0]) * sx + yaw * fd * 0.35; cy = mid[1] + (fmc[1] - fmid[1])
+                w = fw * max(0.55, sx)
+                v["mouth"] = {"coef": [0.0, 0.0, cy], "x0": cx - w / 2, "x1": cx + w / 2, "cy": cy, "fill": fm.get("fill"), "transferred": True}
+            else:
+                v["mouth"] = None     # profile without detection: no mouth drawn (hidden side)
     # neck depth inside the collar: bottom of the neck goes ~0.35 neck-widths below the hole centre
     fv = views[0]
     neck_sink = 0.18 * fv["neck_w"]
@@ -217,6 +251,14 @@ def build(slug):
         bx, by = v["bottom"]
         v["origin"] = (neck_base[0] - bx, neck_base[1] + neck_sink - by)
     head_pivot = (neck_base[0], fv["origin"][1] + fv["chin_y"])
+    # cross-view sanity: the turnaround shares an eye line, so eyes far off the front view's eye line are false hits
+    if fv["eyes"]:
+        fy = np.mean([e["cy"] for e in fv["eyes"]]) + fv["origin"][1]
+        hh_ = fv["rgba"].shape[0]
+        for v in views[1:]:
+            keep = [e for e in v["eyes"] if abs(e["cy"] + v["origin"][1] - fy) < 0.12 * hh_]
+            if len(keep) != len(v["eyes"]): report.setdefault("dropped_eyes", {})[v["name"]] = len(v["eyes"]) - len(keep)
+            v["eyes"] = keep
     neck_bone = (neck_base[0], neck_base[1] - 0.05 * fv["neck_w"])
 
     # ---------------- bones (bind: world positions, zero rotation) ----------------
@@ -414,7 +456,7 @@ def build(slug):
             A = a_; Bc = b_ - 2 * a_ * ox; C = a_ * ox * ox - b_ * ox + c_ + oy
             yaw = yaw_of.get(v["name"], 0)
             depth = (oy + v["chin_y"] - (mo["cy"] + oy)) * 0.62
-            mth = {"coef": [A, Bc, C], "x0": round(ox + mo["x0"], 2), "x1": round(ox + mo["x1"], 2), "jaw_depth": round(depth, 2),
+            mth = {"coef": [A, Bc, C], "x0": round(ox + mo["x0"], 2), "x1": round(ox + mo["x1"], 2), "jaw_depth": round(depth, 2), "fill": mo.get("fill"), "transferred": bool(mo.get("transferred")),
                    "hinge": "both" if abs(yaw) < 0.25 else ("right" if yaw < 0 else "left")}
         face_views.append({"view": v["name"], "attachment": "head_" + v["name"], "yaw": yaw_of.get(v["name"], 0), "eyes": eyes,
                            "mouth": mth, "skin": v["skin"], "ink": v["ink"], "origin": [round(ox, 2), round(oy, 2)],
@@ -446,7 +488,8 @@ def build(slug):
     unit = float(arm_info["l"]["shoulder"][0] - arm_info["r"]["shoulder"][0])
     rig = {
         "schema": SCHEMA_VERSION, "slug": slug, "style": cfg.get("style", "pogtown-2d-v1"),
-        "unit": round(unit, 2), "size_hint": {"top": float(min(v["origin"][1] for v in views)), "bottom": float(ty1 + 200)},
+        "unit": round(unit, 2), "size_hint": {"top": float(min(v["origin"][1] for v in views)), "bottom": float(ty1 + 200),
+                      "art_bottom": float(attachments["hips"]["origin"][1] + attachments["hips"]["size"][1]) if "hips" in attachments else float(ty1)},
         "skeleton": {"naming": "oddrig-humanoid/1", "bones": bones},
         "slots": slots, "attachments": attachments,
         "hands": {"set": list(hand_poses), "by_side": hands},
