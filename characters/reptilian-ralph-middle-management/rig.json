@@ -1,0 +1,127 @@
+{
+ "slug": "reptilian-ralph-middle-management",
+ "style": "pogtown-2d-v1",
+ "art": {
+  "base": "art/base.png",
+  "props": {
+   "hand": "art/hand.png"
+  }
+ },
+ "cut": {
+  "y_cut": 556,
+  "neck_poly": [
+   [
+    282,
+    556
+   ],
+   [
+    300,
+    590
+   ],
+   [
+    330,
+    612
+   ],
+   [
+    370,
+    626
+   ],
+   [
+    385,
+    632
+   ],
+   [
+    400,
+    626
+   ],
+   [
+    440,
+    612
+   ],
+   [
+    470,
+    590
+   ],
+   [
+    487,
+    556
+   ]
+  ],
+  "neck_fill": [
+   178,
+   200,
+   134
+  ],
+  "pivot": [
+   385,
+   600
+  ]
+ },
+ "eyes": {
+  "type": "reptile",
+  "L": [
+   277,
+   207
+  ],
+  "R": [
+   488,
+   207
+  ],
+  "r": 44,
+  "outline": 5,
+  "iris": "#f2e39a",
+  "iris_hi": "#fbf4c4",
+  "iris_rim": "#d4a274",
+  "pupil": "#2e140c",
+  "lid": "#86ad6c",
+  "lid_shade": "#6e9558",
+  "ink": "#3a1d12",
+  "pupil_rx": 9,
+  "pupil_ry": 23
+ },
+ "mouth": {
+  "type": "jaw",
+  "cx": 384,
+  "cy": 329,
+  "hw": 130,
+  "curve": 14,
+  "line_half": 3,
+  "jaw_bottom": 402,
+  "interior": "#3d1414",
+  "tongue": "#c8626a",
+  "teeth": "#f4efd9",
+  "ink": "#3a1d12",
+  "max_open": 34
+ },
+ "brows": null,
+ "hand": {
+  "rest": [
+   560,
+   1500
+  ],
+  "tie": [
+   394,
+   676
+  ],
+  "scale": 0.34,
+  "grip": [
+   0.05,
+   0.22
+  ]
+ },
+ "place": {
+  "scale": 1.40625,
+  "x": 0,
+  "y": 250
+ },
+ "display_name": "Reptilian Ralph",
+ "tagline": "Middle Management \u00b7 Global Takeover",
+ "tag_color": "#7ed957",
+ "voice_fallback": {
+  "provider": "kokoro",
+  "voice_id": "am_onyx:0.65+am_michael:0.35",
+  "speed": 1.04,
+  "lang": "en-us",
+  "note": "stand-in for en-US-ChristopherNeural (edge-tts blocked here)"
+ }
+}

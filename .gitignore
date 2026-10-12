@@ -1,0 +1,7 @@
+vendors/
+out/
+__pycache__/
+*.pyc
+node_modules/
+.cache/
+.venv-vox/

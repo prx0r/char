@@ -1,0 +1,14 @@
+{
+ "head": "layers/head.png",
+ "body": "layers/body.png",
+ "size": [
+  768,
+  1376
+ ],
+ "jaw": "layers/jaw.png",
+ "hand": "layers/hand.png",
+ "hand_size": [
+  436,
+  1243
+ ]
+}
