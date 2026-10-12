@@ -261,20 +261,25 @@ class Rig {
         let u; if (hinge === 'both') u = 1 - Math.abs((x - (a0 + a1) / 2) / ((a1 - a0) / 2));
         else if (hinge === 'right') u = (a1 - x) / (a1 - a0); else u = (x - a0) / (a1 - a0);
         if (u <= 0) return 0;
-        return hinge === 'both' ? Math.pow(Math.sin(Math.PI / 2 * clamp(u, 0, 1)), .8) : Math.pow(clamp(u, 0, 1), .7) * (u > .93 ? 1 - (u - .93) * 3 : 1);
+        return hinge === 'both' ? smooth(clamp(u * 1.25, 0, 1)) : smooth(clamp(u * 1.4, 0, 1)) * (u > .9 ? 1 - (u - .9) * 2.5 : 1);
       };
       const depth = mo.jaw_depth;
-      // interior
-      c.save(); c.beginPath();
-      for (let x = a0; x <= a1; x += 3) c.lineTo(x, lineY(x) - 1);
-      for (let x = a1; x >= a0; x -= 3) c.lineTo(x, lineY(x) + D * prof(x) + 3);
-      c.closePath(); c.fillStyle = M.interior || '#3d1414'; c.fill(); c.clip();
+      // interior (drawn off-canvas and clipped to the head silhouette so it never spills past the snout)
+      const it = this._mtmp || (this._mtmp = document.createElement('canvas'));
+      if (it.width !== v.canvas.width || it.height !== v.canvas.height) { it.width = v.canvas.width; it.height = v.canvas.height; }
+      const q = it.getContext('2d'); q.setTransform(1, 0, 0, 1, 0, 0); q.clearRect(0, 0, it.width, it.height);
+      q.save(); q.beginPath();
+      for (let x = a0; x <= a1; x += 3) q.lineTo(x, lineY(x) - 1);
+      for (let x = a1; x >= a0; x -= 3) q.lineTo(x, lineY(x) + D * prof(x) + 3);
+      q.closePath(); q.fillStyle = M.interior || '#3d1414'; q.fill(); q.clip();
       const xm = hinge === 'both' ? (a0 + a1) / 2 : (hinge === 'right' ? a0 + (a1 - a0) * .3 : a1 - (a1 - a0) * .3);
-      const tg = c.createRadialGradient(xm, lineY(xm) + D * .9, 2, xm, lineY(xm) + D, (a1 - a0) * .45); tg.addColorStop(0, '#160404'); tg.addColorStop(1, 'rgba(22,4,4,0)');
-      c.fillStyle = tg; c.fillRect(a0, lineY(xm) - 30, a1 - a0, D + 80);
-      if (m.tongue > .05 || D > 8) { c.fillStyle = M.tongue || '#c8626a'; c.beginPath(); c.ellipse(xm + 4, lineY(xm) + D * prof(xm) * (1 - .45 * (m.tongueUp || 0)) + 5, (a1 - a0) * .2, D * .36 + 3, 0, 0, 7); c.fill(); }
-      if (D > 9) { c.fillStyle = M.teeth || '#f4efd9'; const k = Math.min(1, (D - 9) / 8); for (let x = a0 + (a1 - a0) * .18; x <= a1 - (a1 - a0) * .14; x += (a1 - a0) * .16) { const y = lineY(x) - 1; c.beginPath(); c.moveTo(x - 5, y); c.lineTo(x + 5, y); c.lineTo(x, y + 8 * k); c.closePath(); c.fill(); } }
-      c.restore();
+      const tg = q.createRadialGradient(xm, lineY(xm) + D * .9, 2, xm, lineY(xm) + D, (a1 - a0) * .45); tg.addColorStop(0, '#160404'); tg.addColorStop(1, 'rgba(22,4,4,0)');
+      q.fillStyle = tg; q.fillRect(a0, lineY(xm) - 30, a1 - a0, D + 80);
+      if (m.tongue > .05 || D > 8) { q.fillStyle = M.tongue || '#c8626a'; q.beginPath(); q.ellipse(xm + 4, lineY(xm) + D * prof(xm) * (1 - .45 * (m.tongueUp || 0)) + 5, (a1 - a0) * .2, D * .36 + 3, 0, 0, 7); q.fill(); }
+      if (D > 9) { q.fillStyle = M.teeth || '#f4efd9'; const k = Math.min(1, (D - 9) / 8); for (let x = a0 + (a1 - a0) * .18; x <= a1 - (a1 - a0) * .14; x += (a1 - a0) * .16) { const y = lineY(x) - 1; q.beginPath(); q.moveTo(x - 5, y); q.lineTo(x + 5, y); q.lineTo(x, y + 8 * k); q.closePath(); q.fill(); } }
+      q.restore();
+      q.globalCompositeOperation = 'destination-in'; q.drawImage(v.img, 0, 0); q.globalCompositeOperation = 'source-over';
+      c.drawImage(it, 0, 0);
       // lower jaw columns slide down (rigid per column, tapered by the hinge profile)
       for (let x = Math.floor(a0) - 2; x < a1 + 2; x += 2) {
         const d = D * prof(x + 1); if (d < .3) continue;

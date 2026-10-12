@@ -150,12 +150,15 @@ function solveIK(P, pose, side) {
   let dx = T[0] - S[0], dy = T[1] - S[1]; let d = Math.hypot(dx, dy); d = clamp(d, Math.abs(L1 - L2) + 1, L1 + L2 - 1);
   const base = Math.atan2(dy, dx);
   const a1 = Math.acos(clamp((L1 * L1 + d * d - L2 * L2) / (2 * L1 * d), -1, 1));
-  upAng = base + sgn * a1;
+  // two solutions; take the one with the elbow lower on screen (elbows hang), ties broken toward "out"
+  const c1 = base + a1, c2 = base - a1;
+  const e1 = Math.sin(c1), e2 = Math.sin(c2);
+  upAng = Math.abs(e1 - e2) < .15 ? base + sgn * a1 : (e1 > e2 ? c1 : c2);
   E = [S[0] + Math.cos(upAng) * L1, S[1] + Math.sin(upAng) * L1];
   loAng = Math.atan2(T[1] - E[1], T[0] - E[0]);
   const bl0 = Math.atan2(ha.y - lo.y, ha.x - lo.x), rot = loAng - bl0 + ((pose.bones['hand_' + side] || {}).rot || 0) * Math.PI / 180;
   const gx = grip[0] * Math.cos(rot) - grip[1] * Math.sin(rot), gy = grip[0] * Math.sin(rot) + grip[1] * Math.cos(rot);
-  T = [T0[0] - gx, T0[1] - gy];
+  T = [T0[0] - gx * .45, T0[1] - gy * .45];
   }
   const parentRot = Math.atan2(Wd.D[R.bi['shoulder_' + side].i][1], Wd.D[R.bi['shoulder_' + side].i][0]);
   const bindUp = Math.atan2(lo.y - up.y, lo.x - up.x), bindLo = Math.atan2(ha.y - lo.y, ha.x - lo.x);

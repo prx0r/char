@@ -12,6 +12,7 @@ import numpy as np, soundfile as sf
 ROOT = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, os.path.join(ROOT, "pipeline"))
 import tts, director, render  # noqa
+import director2  # noqa
 
 CHARS_REPO = os.environ.get("CHARS_REPO", "/workspace/work/chars")
 RHUBARB = os.path.join(ROOT, "vendors/rhubarb-lip-sync/build/rhubarb/rhubarb")
@@ -66,7 +67,7 @@ def _beat_audio(character, b, workdir, voice_override, labels):
     meta = json.load(open(wav + ".json")); labels.add(meta["label"])
     return wav, meta, tts.duration(wav)
 
-def select_and_synth(character, beats, workdir, max_s, voice_override=None, slack=2.5):
+def select_and_synth(character, beats, workdir, max_s, voice_override=None, slack=2.5, trim=False):
     """Fit a ~max_s cut that ends on the closer: walk back contiguously from the closer; when the
     next beat no longer fits, pull in one earlier beat that does, preferring beats that fire a
     character action not yet used (on_groan etc.), then punchlines. Order is preserved."""
@@ -93,11 +94,27 @@ def select_and_synth(character, beats, workdir, max_s, voice_override=None, slac
             if (e == "annoyed" or g == "small gesture") and any(a.get("trigger") == "on_groan" for a in acts.values()): s += 3
             if b.get("type") == "punchline": s += 2
             return s
+        placed = False
         for j in sorted(range(first - 1, -1, -1), key=lambda j: -score(beats[j])):
             b = beats[j]; wav, meta, d = _beat_audio(character, b, workdir, voice_override, labels)
             cost = d + pause_of(b)
             if total + cost <= max_s + slack:
-                chosen[j] = {"beat": b, "wav": wav, "words": meta["words"], "dur": d, "pause": pause_of(b)}; total += cost; break
+                chosen[j] = {"beat": b, "wav": wav, "words": meta["words"], "dur": d, "pause": pause_of(b)}; total += cost; placed = True; break
+        if not placed and trim:
+            # no whole beat fits: use the opening sentences of the best-scoring earlier beat (verbatim prefix,
+            # at least two sentences) so the cut still lands on ~max_s and keeps the action trigger
+            import re
+            for j in sorted(range(first - 1, -1, -1), key=lambda j: -score(beats[j])):
+                if score(beats[j]) <= 0: continue
+                sents = [x for x in re.split(r"(?<=[.?!])\s+", beats[j]["text"]) if x]
+                for k in range(len(sents) - 1, 1, -1):
+                    b = dict(beats[j]); b["text"] = " ".join(sents[:k]); b["id"] = "%s~%d" % (beats[j]["id"], k)
+                    b["pause_after_ms"] = min(600, beats[j].get("pause_after_ms", 300))
+                    wav, meta, d = _beat_audio(character, b, workdir, voice_override, labels)
+                    cost = d + pause_of(b)
+                    if total + cost <= max_s + slack:
+                        chosen[j] = {"beat": b, "wav": wav, "words": meta["words"], "dur": d, "pause": pause_of(b)}; total += cost; placed = True; break
+                if placed: break
     return [chosen[k] for k in sorted(chosen)], sorted(labels)
 
 def assemble(chosen, out_wav, sr=tts.SR):
@@ -178,6 +195,99 @@ def cmd_perform(a):
     json.dump(rep, open(os.path.join(out, "report.json"), "w"), indent=1)
     print(json.dumps(rep, indent=1))
 
+# ---------------- OddRig stack (v2) ----------------
+def rig_path(slug):
+    return os.path.join(ROOT, "characters", slug, "rig", "rig.json")
+
+def ensure_rig(slug, rebuild=False):
+    if rebuild or not os.path.exists(rig_path(slug)):
+        subprocess.run([sys.executable, os.path.join(ROOT, "rigkit", "build_rig.py"), slug], check=True)
+    return json.load(open(rig_path(slug)))
+
+def place_for(rig, x=540, head_top=330, shoulder_frac=0.36, scale=None):
+    s = scale or (W_FRAME * shoulder_frac / rig["unit"])
+    root = next(b for b in rig["skeleton"]["bones"] if b["name"] == "root")
+    return {"x": x, "y": round(head_top + (root["y"] - rig["size_hint"]["top"]) * s, 1), "scale": round(s, 4)}
+
+W_FRAME = 1080
+
+def performer_v2(slug, rig, ev, cues, env, place, character, base_look=None):
+    prof = character.get("profile", {})
+    return {"slug": slug, "rig_url": "/characters/%s/rig/rig.json" % slug, "place": place,
+            "movement": float(prof.get("movement", 0.4)), "energy": float(prof.get("energy", 0.5)),
+            "clips": ev["clips"], "expr": ev["expr"], "looks": ev["looks"], "blinks": ev["blinks"], "still": ev["still"],
+            "camera": ev["camera"], "mouth": cues, "env": env, "env_fps": FPS, "base_look": base_look}
+
+def cmd_perform2(a):
+    slug = a.character
+    character, delivery, gdir = load_graph(slug)
+    character["_slug"] = slug
+    rig = ensure_rig(slug)
+    meta = rig_meta(slug)
+    out = os.path.join(ROOT, "out", slug); os.makedirs(out, exist_ok=True)
+    t_all = time.time()
+    chosen, labels = select_and_synth(character, delivery["beats"], out, a.seconds, slack=0.2, trim=True)
+    t_tts = time.time() - t_all
+    wav = os.path.join(out, "performance.wav")
+    timing, dur = assemble(chosen, wav)
+    text = " ".join(c["beat"]["text"] for c in chosen)
+    cues, t_rh = rhubarb(wav, text, os.path.join(out, "mouth.json"))
+    ev = director2.direct(character, [c["beat"] for c in chosen], timing, seed=a.seed)
+    tl = {"page": "stage2.html", "fps": FPS, "duration": round(dur, 3), "background": meta.get("stage", "/assets/stage/office.png"), "fadeIn": 0.25,
+          "captions": captions(timing),
+          "tags": [{"t0": 0.3, "t1": 3.0, "name": meta.get("display_name", character["name"].split(",")[0]), "sub": meta.get("tagline", character.get("species", "")), "color": meta.get("tag_color", "#7ed957")}],
+          "performers": [performer_v2(slug, rig, ev, cues, envelope(wav), place_for(rig, **meta.get("place", {})), character)],
+          "meta": {"beats": [c["beat"]["id"] for c in chosen], "tts": labels, "stack": "oddrig/1"}}
+    tlp = os.path.join(out, "timeline_v2.json"); json.dump(tl, open(tlp, "w"), indent=1)
+    if a.stills is not None and len(a.stills):
+        print(render.still(tlp, a.stills, os.path.join(out, "v2.jpg"))); return
+    mp4 = os.path.join(out, "%s_oddrig_%ds.mp4" % (slug, int(round(dur))))
+    st = render.render(tlp, wav, mp4, workers=a.workers)
+    rep = {"mp4": mp4, "duration_s": round(dur, 2), "beats": tl["meta"]["beats"], "tts": labels, "tts_s": round(t_tts, 1), "rhubarb_s": t_rh,
+           "clips": [(c["clip"], c["t0"], c.get("why")) for c in ev["clips"] if c.get("why") not in ("idle",) and not str(c.get("why", "")).startswith(("stress", "hand-beat"))],
+           "actions": ev["log"], **st, "total_s": round(time.time() - t_all, 1)}
+    json.dump(rep, open(os.path.join(out, "report_v2.json"), "w"), indent=1)
+    print(json.dumps(rep, indent=1))
+
+def rig_meta(slug):
+    """display name / tagline / voice fallback / framing: rig.v1 rig.json (legacy) or characters/<slug>/meta_rig.json"""
+    m = {}
+    for p in (os.path.join(ROOT, "characters", slug, "rig.json"), os.path.join(ROOT, "characters", slug, "stage.json")):
+        if os.path.exists(p): m.update(json.load(open(p)))
+    m.pop("place", None)
+    sp = os.path.join(ROOT, "characters", slug, "stage.json")
+    if os.path.exists(sp) and "place" in json.load(open(sp)): m["place"] = json.load(open(sp))["place"]
+    return m
+
+def cmd_rig(a):
+    """Build (or rebuild) the OddRig for a character and render validation stills: bind pose + clip poses."""
+    slug = a.character
+    rig = ensure_rig(slug, rebuild=True)
+    out = os.path.join(ROOT, "out", slug); os.makedirs(out, exist_ok=True)
+    poses = [("rest", None, 0.6), ("suit_adjust", "suit_adjust", 0.75), ("shrug", "shrug", 0.55), ("point", "point_side_r", 0.75), ("explain", "gesture_talk_r", 0.9),
+             ("arms_wide", "arms_wide", 0.9), ("look 3/4", "look_away", 0.6), ("glitch", "eye_glitch", 0.3)]
+    clips = []; t = 0.0; stamps = []
+    for label, clip, at in poses:
+        if clip: clips.append({"clip": clip, "t0": t})
+        stamps.append(round(t + at, 3)); t += 3.0
+    character = load_graph(slug)[0] if True else {}
+    tl = {"page": "stage2.html", "fps": FPS, "duration": t, "background": "/assets/stage/office.png", "captions": [], "tags": [],
+          "performers": [{"slug": slug, "rig_url": "/characters/%s/rig/rig.json" % slug, "place": place_for(rig, **rig_meta(slug).get("place", {})),
+                          "movement": 0.5, "energy": 0.5, "clips": clips + [{"clip": "idle_breathe", "t0": 0, "dur": t}], "expr": [{"t": 0, "expr": "neutral"}],
+                          "looks": [], "blinks": [], "still": [], "camera": [], "mouth": [{"t": 0, "v": "X"}, {"t": stamps[4] - 0.2, "v": "D"}]}]}
+    tlp = os.path.join(out, "rig_validate.json"); json.dump(tl, open(tlp, "w"))
+    outs = render.still(tlp, stamps, os.path.join(out, "rigv.jpg"))
+    from PIL import Image, ImageDraw
+    ims = [Image.open(o).resize((360, 640)) for o in outs]
+    sheet = Image.new("RGB", (360 * 4, 640 * 2 + 40), (20, 20, 28)); d = ImageDraw.Draw(sheet)
+    for k, im in enumerate(ims):
+        x, y = (k % 4) * 360, (k // 4) * 680
+        sheet.paste(im, (x, y + 40)); d.text((x + 10, y + 12), poses[k][0], fill=(255, 255, 255))
+    vp = os.path.join(out, "rig_validate.jpg"); sheet.save(vp, quality=88)
+    print(json.dumps({"rig": rig_path(slug), "validate_sheet": vp, "bind_still": os.path.join(ROOT, "characters", slug, "rig", "validate.png"),
+                      "bones": len(rig["skeleton"]["bones"]), "views": [v["view"] for v in rig["face"]["views"]], "hands": rig["hands"]["set"],
+                      "landmarks": rig["provenance"]["report"]["landmarks"]}, indent=1))
+
 def cmd_still(a):
     slug = a.character; out = os.path.join(ROOT, "out", slug)
     print(render.still(os.path.join(out, "timeline.json"), a.t, os.path.join(out, "still.jpg")))
@@ -186,11 +296,18 @@ def main():
     p = argparse.ArgumentParser(); sp = p.add_subparsers(dest="cmd", required=True)
     q = sp.add_parser("perform"); q.add_argument("--character", required=True); q.add_argument("--seconds", type=float, default=15)
     q.add_argument("--seed", type=int, default=11); q.add_argument("--workers", type=int, default=2); q.add_argument("--stills", type=float, nargs="*")
+    q.add_argument("--legacy", action="store_true", help="old flat cut-out renderer (stage.js)")
+    q = sp.add_parser("rig"); q.add_argument("--character", required=True)
+    q = sp.add_parser("onboard"); q.add_argument("--slug", required=True); q.add_argument("--from-graph", default=None); q.add_argument("--prompt", default=None)
+    q.add_argument("--photo", default=None); q.add_argument("--reuse-art", action="store_true")
     q = sp.add_parser("still"); q.add_argument("--character", required=True); q.add_argument("--t", type=float, nargs="+")
     q = sp.add_parser("add-character"); q.add_argument("--from-subject", required=True); q.add_argument("--photo", required=True); q.add_argument("--skip-art", action="store_true")
     q = sp.add_parser("duet"); q.add_argument("--script", required=True); q.add_argument("--workers", type=int, default=2); q.add_argument("--stills", type=float, nargs="*")
     a = p.parse_args()
-    if a.cmd == "perform": cmd_perform(a)
+    if a.cmd == "perform": (cmd_perform if a.legacy else cmd_perform2)(a)
+    elif a.cmd == "rig": cmd_rig(a)
+    elif a.cmd == "onboard":
+        sys.path.insert(0, os.path.join(ROOT, "rigkit")); import onboard_rig; onboard_rig.run(a)
     elif a.cmd == "still": cmd_still(a)
     elif a.cmd == "add-character":
         import onboard; onboard.add_character(a)

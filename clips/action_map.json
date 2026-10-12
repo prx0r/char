@@ -1,0 +1,53 @@
+{
+ "_doc": "Shared resolution: character.json action -> clip. Precedence: action.clip (explicit per-character override) > first tag found here > body. gaze.* tags also emit look events.",
+ "tags": {
+  "gesture.adjust": "suit_adjust",
+  "reaction.glitch": "eye_glitch",
+  "reaction.flicker": "eye_glitch",
+  "reaction.reveal": "eye_glitch",
+  "pose.bask": "warm_rock_lean",
+  "pose.lean": "lean_in",
+  "pose.confide": "lean_in",
+  "gesture.summon": "arms_wide",
+  "gesture.bestow": "arms_wide",
+  "gesture.point": "point_side_r",
+  "gesture.direct": "point_side_r",
+  "gesture.command": "point_up_r",
+  "gesture.conduct": "point_up_r",
+  "gesture.shrug": "shrug",
+  "gesture.present": "present_palm_r",
+  "gesture.offer": "present_palm_r",
+  "gesture.display": "present_palm_r",
+  "gesture.account": "gesture_talk_r",
+  "gesture.stamp": "fist_beat_r",
+  "gesture.knock": "fist_beat_r",
+  "gesture.listen": "head_tilt",
+  "gesture.inspect": "head_tilt",
+  "gesture.mime": "mime_swing",
+  "reaction.stillness": "react_recoil",
+  "reaction.eye_roll": "look_up",
+  "reaction.laugh": "laugh",
+  "reaction.hold": null,
+  "reaction.absent": null,
+  "gaze.sky": "look_up"
+ },
+ "body": {
+  "small gesture": "present_palm_r",
+  "lean in": "lean_in",
+  "shrug": "shrug",
+  "big gesture": "arms_wide",
+  "expansive gesture": "arms_wide",
+  "expansive": "arms_wide",
+  "look left": "look_away",
+  "hold still": null
+ },
+ "delivery_gesture": {
+  "shrug": "shrug",
+  "lean in": "lean_in",
+  "big gesture": "arms_wide",
+  "look left": "look_away",
+  "small gesture": null,
+  "normal": null,
+  "hold still": null
+ }
+}

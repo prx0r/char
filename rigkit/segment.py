@@ -32,7 +32,7 @@ def key_sheet(path, t0=48.0, t1=100.0):
     fg[..., 2] = np.where(edge & (spill > 30), np.minimum(b, lim), b)
     # house style has dark outlines: any semi-transparent edge pixel is outline, so give it the ink colour
     L0 = fg[..., 0] * 0.299 + fg[..., 1] * 0.587 + fg[..., 2] * 0.114
-    inkpx = fg[(alpha > 0.98) & (L0 < 70)]
+    inkpx = fg[(alpha > 0.98) & (L0 < 55)]
     if len(inkpx) > 50:
         ink = np.median(inkpx, 0)
         edge = (alpha > 0.0) & (alpha < 0.85)
@@ -81,7 +81,7 @@ def components(path, min_area=1500, pad=6):
         mm = np.zeros((H, W), bool)
         mm[sl] = m
         mm = ndi.binary_dilation(mm, iterations=3)
-        a = (alpha * mm)[y0:y1, x0:x1]
+        a = ndi.gaussian_filter((alpha * mm)[y0:y1, x0:x1], 0.6)   # anti-alias the keyed edge
         rgba = np.dstack([fg[y0:y1, x0:x1], (a * 255).astype(np.uint8)])
         rgb_raw = raw[y0:y1, x0:x1]
         ys, xs = np.nonzero(m)

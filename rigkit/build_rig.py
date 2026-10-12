@@ -304,6 +304,14 @@ def build(slug):
     if collar_back.any():
         attachments["collar_back"] = {"type": "mesh", "image": save_tex("collar_back", cb_rgba), "size": [tw, th], "origin": [tx0, ty0], **grid_mesh(cb_rgba[..., 3] / 255.0, step, (tx0, ty0), torso_w, (tw, th))}
     if hips is not None:
+        # trousers on the sheet are cut by the image edge: extend the legs downward by repeating the
+        # lowest clean band of rows so the framing never shows where the art stops
+        hr = hips["rgba"]; a_ = hr[..., 3] > 127; rows_on = np.nonzero(a_.any(1))[0]
+        if cfg.get("extend_legs", 520) and hips["bbox"][3] >= SH - 3:
+            last = rows_on.max() - 3; band = hr[last - 6:last]
+            ext = np.concatenate([band] * int(math.ceil(cfg.get("extend_legs", 520) / 6)), 0)
+            hr = np.concatenate([hr[:last], ext], 0)
+            hips = {**hips, "rgba": hr}
         hx0, hy0 = hips["bbox"][:2]; hh, hw_ = hips["rgba"].shape[:2]
         # trousers top hides behind the jacket at belt height
         hox, hoy = tcx - (hips["centroid"][0] - hx0), belt_y - 6
