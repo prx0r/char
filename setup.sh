@@ -3,8 +3,8 @@
 set -u
 cd "$(dirname "$0")"
 export TMPDIR=$PWD/.cache/tmp PIP_CACHE_DIR=$PWD/.cache/pip; mkdir -p "$TMPDIR"
-python3 -c "import playwright, kokoro_onnx, scipy, soundfile, edge_tts, numpy" 2>/dev/null || \
-  pip install -q playwright kokoro-onnx scipy soundfile edge-tts numpy
+python3 -c "import playwright, kokoro_onnx, scipy, soundfile, edge_tts, numpy, jsonschema" 2>/dev/null || \
+  pip install -q playwright kokoro-onnx scipy soundfile edge-tts numpy jsonschema
 command -v chromium >/dev/null || { sudo apt-get update -q >/dev/null; sudo apt-get install -y -q chromium >/dev/null; }  # playwright's own arm64 chromium download is 403
 command -v ffmpeg >/dev/null || sudo apt-get install -y -q ffmpeg >/dev/null
 # rigkit: MediaPipe (pose/face landmarks for onboarding; its C lib needs libEGL) + opencv comes with it

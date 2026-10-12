@@ -1,0 +1,77 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/prx0r/char/rigkit/rig.schema.json",
+  "title": "OddRig rig (oddrig/1)",
+  "description": "A 2D skeletal character rig authored entirely by code (no GUI editor): skeleton with standard humanoid bone names, slots (draw order), skinned mesh attachments with per-vertex weights, multi-angle head views, a face description (eyes / mouth / visemes / expressions), a hand-pose set, anchors for IK, secondary physics and clip-library inheritance. Coordinates are rig pixels (y down). Bind pose = bone world positions with zero rotation; animation is local (rot, tx, ty, sx, sy) deltas about each bone's own position.",
+  "type": "object",
+  "required": ["schema", "slug", "unit", "skeleton", "slots", "attachments", "hands", "face", "anchors"],
+  "properties": {
+    "schema": {"const": "oddrig/1"},
+    "slug": {"type": "string", "description": "character id; matches the graph slug (freaks/<slug> or characters/<slug>)"},
+    "style": {"type": "string", "description": "house style id, e.g. pogtown-2d-v1"},
+    "unit": {"type": "number", "exclusiveMinimum": 0, "description": "retarget unit = distance between upper_arm_r and upper_arm_l (shoulder width). Clip translations are in units, so one clip fits every body."},
+    "size_hint": {"type": "object", "properties": {"top": {"type": "number"}, "bottom": {"type": "number"}, "art_bottom": {"type": "number", "description": "where the drawing stops; framing keeps it below the frame"}}},
+    "skeleton": {
+      "type": "object", "required": ["naming", "bones"],
+      "properties": {
+        "naming": {"const": "oddrig-humanoid/1", "description": "Standard humanoid names. Required: root, hips, spine, chest, neck, head, shoulder_{r,l}, upper_arm_{r,l}, lower_arm_{r,l}, hand_{r,l}. _r = the character's right (screen-left in a front view). Optional secondary chains (tie_0.., hair_0.., beard_0.., tail_0..) are marked secondary:true."},
+        "bones": {"type": "array", "minItems": 14, "items": {"$ref": "#/$defs/bone"},
+                  "allOf": [{"contains": {"properties": {"name": {"const": "root"}}}}, {"contains": {"properties": {"name": {"const": "head"}}}},
+                            {"contains": {"properties": {"name": {"const": "hand_r"}}}}, {"contains": {"properties": {"name": {"const": "hand_l"}}}}]}
+      }
+    },
+    "slots": {"type": "array", "description": "draw order, back to front", "items": {"$ref": "#/$defs/slot"}},
+    "attachments": {"type": "object", "additionalProperties": {"$ref": "#/$defs/mesh"}},
+    "hands": {
+      "type": "object", "required": ["set", "by_side"],
+      "properties": {
+        "set": {"type": "array", "items": {"enum": ["rest", "palm", "point", "fist", "pinch", "flat"]}, "description": "standard hand set; clips switch with hand_<side>.pose step keys"},
+        "by_side": {"type": "object", "properties": {"r": {"$ref": "#/$defs/handMap"}, "l": {"$ref": "#/$defs/handMap"}}, "required": ["r", "l"]}
+      }
+    },
+    "face": {
+      "type": "object", "required": ["views", "eyes", "mouth", "visemes", "expressions"],
+      "properties": {
+        "views": {"type": "array", "description": "head view angles. yaw -1 = profile facing screen-left, -0.5 = 3/4, 0 = front, +0.5/+1 mirrored. Renderer picks the two views around the current yaw and crossfades in a narrow band at the midpoint; inside a view, per-vertex depth gives parallax.",
+                  "items": {"oneOf": [{"$ref": "#/$defs/faceView"}, {"$ref": "#/$defs/mirrorView"}]}},
+        "eyes": {"type": "object", "properties": {"type": {"enum": ["ball", "human"]}, "pupil_color": {"type": "string"}, "white": {"type": "string"}, "iris": {"type": "string"}, "iris_scale": {"type": "number"}},
+                 "description": "procedural eyes drawn inside each view's painted eye mask (keeps occlusion + the painted outline): iris/pupil gaze, slit pupils, upper/lower lids, blinks"},
+        "mouth": {"type": "object", "properties": {"type": {"enum": ["jaw", "vector"]}, "max_open": {"type": "number", "description": "fraction of unit"}, "interior": {"type": "string"}, "tongue": {"type": "string"}, "teeth": {"type": "string"}},
+                  "description": "jaw = the painted lower jaw slides down per column along the detected mouth line (hinge-aware for 3/4 views); vector = painted mouth painted out with sampled surround colour, vector mouth drawn"},
+        "visemes": {"type": "array", "items": {"enum": ["X", "A", "B", "C", "D", "E", "F", "G", "H"]}, "description": "Rhubarb Lip Sync shapes (A-H + X), mapped to open/wide/round/teeth/tongue"},
+        "expressions": {"type": "array", "items": {"type": "string"}, "description": "expression set: lid, lid tilt, lower lid, brow lift/tilt (mesh warp of the brow region), smile, pupil size, asymmetry"}
+      }
+    },
+    "anchors": {"type": "object", "description": "named IK targets bound to a bone: [x, y, bone]. Standard: tie_knot, chest_center, belly, chin, lapel_r, lapel_l", "additionalProperties": {"type": "array", "prefixItems": [{"type": "number"}, {"type": "number"}, {"type": "string"}], "minItems": 3, "maxItems": 3}},
+    "physics": {"type": "array", "description": "secondary motion: damped angular springs driven by parent acceleration (follow-through). hand_* wrist drag and head lag are added by the runtime.", "items": {"type": "object", "required": ["bone"], "properties": {"bone": {"type": "string"}, "stiffness": {"type": "number"}, "damping": {"type": "number"}, "gain": {"type": "number"}, "galpha": {"type": "number"}}}},
+    "limits": {"type": "object", "description": "character movement limits, e.g. {movement: 0.3}; the graph profile.movement scales clip amplitude"},
+    "clips": {"type": "object", "properties": {"inherit": {"const": "shared"}, "overrides": {"type": "object", "description": "per-character clip overrides: {clip_name: {tracks: {...}, ...}} merged over clips/<name>.json"}}},
+    "provenance": {"type": "object", "description": "sheets used, builder, landmark report (which detector found what)"}
+  },
+  "$defs": {
+    "bone": {"type": "object", "required": ["name", "parent", "x", "y"], "properties": {
+      "name": {"type": "string", "pattern": "^[a-z][a-z0-9_]*$"}, "parent": {"type": ["string", "null"]},
+      "x": {"type": "number"}, "y": {"type": "number"}, "secondary": {"type": "boolean"}}},
+    "slot": {"type": "object", "required": ["name", "bone", "attachment"], "properties": {
+      "name": {"type": "string"}, "bone": {"type": "string"}, "attachment": {"type": ["string", "null"]},
+      "kind": {"enum": ["head_views", "hand"], "description": "head_views: renders face.views; hand: swaps hands.by_side[side][pose]"}}},
+    "mesh": {"type": "object", "required": ["type", "image", "size", "vertices", "uvs", "triangles", "weights"], "properties": {
+      "type": {"const": "mesh"}, "image": {"type": "string", "description": "texture path relative to the rig dir"},
+      "eye_mask": {"type": "string"}, "size": {"type": "array", "items": {"type": "integer"}, "minItems": 2, "maxItems": 2},
+      "origin": {"type": "array", "items": {"type": "number"}, "description": "rig position of texture pixel (0,0) (unrotated attachments)"},
+      "vertices": {"type": "array", "items": {"type": "array", "items": {"type": "number"}, "minItems": 2, "maxItems": 2}, "description": "bind-pose rig coords"},
+      "uvs": {"type": "array", "items": {"type": "array", "items": {"type": "number"}, "minItems": 2, "maxItems": 2}},
+      "triangles": {"type": "array", "items": {"type": "integer", "minimum": 0}},
+      "weights": {"type": "array", "description": "per vertex: [[bone, w], ...] (<=4, sums to 1). A parent/child pair is skinned by rotational blend (child's local delta scaled by w) so bends keep volume; other mixes use linear blend skinning.",
+                  "items": {"type": "array", "items": {"type": "array", "prefixItems": [{"type": "string"}, {"type": "number"}], "minItems": 2, "maxItems": 2}, "maxItems": 4}},
+      "depth": {"type": "array", "items": {"type": "number"}, "description": "head views: 0 at silhouette .. 1 deep inside; drives turn/pitch parallax"},
+      "grip": {"type": "array", "items": {"type": "number"}, "description": "hand attachments: grip point relative to the wrist; IK aims it at the target"}}},
+    "handMap": {"type": "object", "additionalProperties": {"type": "string"}},
+    "faceView": {"type": "object", "required": ["view", "attachment", "yaw"], "properties": {
+      "view": {"type": "string"}, "attachment": {"type": "string"}, "yaw": {"type": "number", "minimum": -1, "maximum": 1},
+      "eyes": {"type": "array", "items": {"type": "object", "required": ["cx", "cy", "rx", "ry"], "properties": {"cx": {"type": "number"}, "cy": {"type": "number"}, "rx": {"type": "number"}, "ry": {"type": "number"}, "color": {"type": "array"}}}},
+      "mouth": {"type": ["object", "null"], "properties": {"coef": {"type": "array", "minItems": 3, "maxItems": 3, "description": "mouth line y = a x^2 + b x + c (rig coords)"}, "x0": {"type": "number"}, "x1": {"type": "number"}, "jaw_depth": {"type": "number"}, "hinge": {"enum": ["both", "left", "right"]}, "fill": {"type": ["array", "null"]}, "transferred": {"type": "boolean"}}},
+      "skin": {"type": "array"}, "ink": {"type": "array"}, "origin": {"type": "array"}, "detector": {"enum": ["mediapipe", "cartoon-blob"]}}},
+    "mirrorView": {"type": "object", "required": ["view", "mirror_of", "yaw"], "properties": {"view": {"type": "string"}, "mirror_of": {"type": "string"}, "yaw": {"type": "number"}}}
+  }
+}

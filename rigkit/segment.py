@@ -81,8 +81,14 @@ def components(path, min_area=1500, pad=6):
         mm = np.zeros((H, W), bool)
         mm[sl] = m
         mm = ndi.binary_dilation(mm, iterations=3)
-        a = ndi.gaussian_filter((alpha * mm)[y0:y1, x0:x1], 0.6)   # anti-alias the keyed edge
-        rgba = np.dstack([fg[y0:y1, x0:x1], (a * 255).astype(np.uint8)])
+        a0 = (alpha * mm)[y0:y1, x0:x1]
+        a = ndi.gaussian_filter(a0, 0.6)   # anti-alias the keyed edge
+        rgb_c = fg[y0:y1, x0:x1].copy()
+        # pixels the blur pulled into the edge carry background colour: give them the outline ink instead
+        Lc = rgb_c[..., 0] * 0.299 + rgb_c[..., 1] * 0.587 + rgb_c[..., 2] * 0.114
+        inkc = np.median(rgb_c[(a0 > 0.98) & (Lc < 55)], 0) if ((a0 > 0.98) & (Lc < 55)).sum() > 30 else np.array([58, 29, 18])
+        rgb_c[(a0 < 0.85) & (a > 0.003)] = inkc.astype(np.uint8)
+        rgba = np.dstack([rgb_c, (a * 255).astype(np.uint8)])
         rgb_raw = raw[y0:y1, x0:x1]
         ys, xs = np.nonzero(m)
         out.append({"bbox": [x0, y0, x1, y1], "area": area, "rgba": rgba, "rgb_raw": rgb_raw,

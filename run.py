@@ -21,12 +21,13 @@ LEAD_IN = 0.45
 TAIL = 0.7
 
 def load_graph(slug):
-    for base in (os.path.join(ROOT, "characters", slug), os.path.join(CHARS_REPO, "freaks", slug)):
-        cj = os.path.join(base, "character.json")
-        if os.path.exists(cj):
-            dj = os.path.join(base, "delivery.json")
-            return json.load(open(cj)), (json.load(open(dj)) if os.path.exists(dj) else None), base
-    raise SystemExit("no character.json for " + slug)
+    """character.json: char lab copy first, else the chars repo (fresh schema). delivery.json: same order, independently
+    (a lab-written delivery can accompany a graph that lives only in the chars repo)."""
+    bases = (os.path.join(ROOT, "characters", slug), os.path.join(CHARS_REPO, "freaks", slug))
+    cj = next((os.path.join(b, "character.json") for b in bases if os.path.exists(os.path.join(b, "character.json"))), None)
+    if not cj: raise SystemExit("no character.json for " + slug)
+    dj = next((os.path.join(b, "delivery.json") for b in bases if os.path.exists(os.path.join(b, "delivery.json"))), None)
+    return json.load(open(cj)), (json.load(open(dj)) if dj else None), os.path.dirname(cj)
 
 def load_rig(slug):
     d = os.path.join(ROOT, "characters", slug)
@@ -93,6 +94,7 @@ def select_and_synth(character, beats, workdir, max_s, voice_override=None, slac
             s = 0
             if (e == "annoyed" or g == "small gesture") and any(a.get("trigger") == "on_groan" for a in acts.values()): s += 3
             if b.get("type") == "punchline": s += 2
+            if float(b.get("speech", {}).get("emphasis", 0.5)) >= 0.75 and any(a.get("trigger") == "on_emphasis" for a in acts.values()): s += 2
             return s
         placed = False
         for j in sorted(range(first - 1, -1, -1), key=lambda j: -score(beats[j])):
@@ -233,7 +235,7 @@ def cmd_perform2(a):
     meta = rig_meta(slug)
     out = os.path.join(ROOT, "out", slug); os.makedirs(out, exist_ok=True)
     t_all = time.time()
-    chosen, labels = select_and_synth(character, delivery["beats"], out, a.seconds, slack=0.2, trim=True)
+    chosen, labels = select_and_synth(character, delivery["beats"], out, a.seconds, slack=0.3, trim=True)
     t_tts = time.time() - t_all
     wav = os.path.join(out, "performance.wav")
     timing, dur = assemble(chosen, wav)
@@ -310,6 +312,7 @@ def main():
     q = sp.add_parser("still"); q.add_argument("--character", required=True); q.add_argument("--t", type=float, nargs="+")
     q = sp.add_parser("add-character"); q.add_argument("--from-subject", required=True); q.add_argument("--photo", required=True); q.add_argument("--skip-art", action="store_true")
     q = sp.add_parser("duet"); q.add_argument("--script", required=True); q.add_argument("--workers", type=int, default=2); q.add_argument("--stills", type=float, nargs="*")
+    q.add_argument("--legacy", action="store_true")
     a = p.parse_args()
     if a.cmd == "perform": (cmd_perform if a.legacy else cmd_perform2)(a)
     elif a.cmd == "rig": cmd_rig(a)
@@ -319,7 +322,10 @@ def main():
     elif a.cmd == "add-character":
         import onboard; onboard.add_character(a)
     elif a.cmd == "duet":
-        import duet; duet.run(a)
+        if a.legacy:
+            import duet; duet.run(a)
+        else:
+            import duet2; duet2.run(a)
 
 if __name__ == "__main__":
     main()

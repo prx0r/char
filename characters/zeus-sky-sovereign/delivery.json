@@ -1,7 +1,65 @@
-{"_note": "Short local test set written in the char lab (the chars repo has no delivery.json for Zeus yet). Voice of the graph: 'booming decree collapsing into excuses'; facts from persona.facts.",
+{
+ "_note": "Short local test set written in the char lab (the chars repo has no delivery.json for Zeus yet). Voice of the graph: 'booming decree collapsing into excuses'; facts from persona.facts.",
  "beats": [
-  {"id": "z1", "type": "setup", "text": "Mortals. I am Zeus. King of the sky, the weather, and the law.", "performance": {"expression": "confident", "gesture": "big gesture", "look": "audience"}, "speech": {"emphasis": 0.8, "pace": "normal"}, "pause_after_ms": 300},
-  {"id": "z2", "type": "setup", "text": "I rule everything. Personally. Hera does the paperwork.", "performance": {"expression": "annoyed", "gesture": "small gesture", "look": "audience"}, "speech": {"emphasis": 0.6, "pace": "normal"}, "pause_after_ms": 400},
-  {"id": "z3", "type": "punchline", "text": "The thunderbolts? Those are for emphasis.", "performance": {"expression": "deadpan", "gesture": "hold still", "look": "audience"}, "speech": {"emphasis": 0.9, "pace": "normal"}, "pause_after_ms": 1000},
-  {"id": "z4", "type": "closer", "text": "Also, I'm not here. I'm a swan.", "performance": {"expression": "grin", "gesture": "shrug", "look": "audience"}, "speech": {"emphasis": 0.8, "pace": "normal"}, "pause_after_ms": 1000}
- ]}
+  {
+   "id": "z1",
+   "type": "setup",
+   "text": "Mortals! I am Zeus, King of the sky!",
+   "performance": {
+    "expression": "confident",
+    "gesture": "big gesture",
+    "look": "audience"
+   },
+   "speech": {
+    "emphasis": 0.8,
+    "pace": "normal"
+   },
+   "pause_after_ms": 300
+  },
+  {
+   "id": "z2",
+   "type": "setup",
+   "text": "I rule everything. Personally. Hera does the paperwork.",
+   "performance": {
+    "expression": "annoyed",
+    "gesture": "small gesture",
+    "look": "audience"
+   },
+   "speech": {
+    "emphasis": 0.6,
+    "pace": "normal"
+   },
+   "pause_after_ms": 250
+  },
+  {
+   "id": "z3",
+   "type": "punchline",
+   "text": "The thunderbolts? Those are for emphasis.",
+   "performance": {
+    "expression": "deadpan",
+    "gesture": "hold still",
+    "look": "audience"
+   },
+   "speech": {
+    "emphasis": 0.9,
+    "pace": "normal"
+   },
+   "pause_after_ms": 1000
+  },
+  {
+   "id": "z4",
+   "type": "closer",
+   "text": "Also, I'm not here. I'm a swan.",
+   "performance": {
+    "expression": "grin",
+    "gesture": "shrug",
+    "look": "audience"
+   },
+   "speech": {
+    "emphasis": 0.8,
+    "pace": "normal"
+   },
+   "pause_after_ms": 1000
+  }
+ ]
+}

@@ -8,7 +8,7 @@
  ],
  "fade_in": 0.08,
  "fade_out": 0.2,
- "principles": "address (hands together low), slow backswing up over the screen-left shoulder (anticipation), fast downswing, follow-through high on the other side, eyes track the imaginary ball and wince",
+ "principles": "both hands share one grip path (they hold one club): address low, slow backswing up over the screen-left shoulder (anticipation), fast downswing (ease-in), follow-through high screen-right with overshoot, eyes track the imaginary ball and wince",
  "ik": {
   "hand_r": {
    "target": "belly",
@@ -65,79 +65,17 @@
   "ik.hand_r.ox": [
    [
     0,
-    0.03,
+    0.0,
     "io"
    ],
    [
     0.35,
-    0.03,
+    0.0,
     "io"
    ],
    [
     1.15,
-    0.38,
-    "i"
-   ],
-   [
-    1.42,
-    -0.02,
-    "o"
-   ],
-   [
-    1.75,
-    -0.36,
-    "io"
-   ],
-   [
-    2.2,
-    -0.3
-   ]
-  ],
-  "ik.hand_r.oy": [
-   [
-    0,
-    0.12,
-    "io"
-   ],
-   [
-    0.35,
-    0.12,
-    "io"
-   ],
-   [
-    1.15,
-    -0.62,
-    "i"
-   ],
-   [
-    1.42,
-    0.14,
-    "o"
-   ],
-   [
-    1.75,
-    -0.55,
-    "io"
-   ],
-   [
-    2.2,
-    -0.5
-   ]
-  ],
-  "ik.hand_l.ox": [
-   [
-    0,
-    -0.03,
-    "io"
-   ],
-   [
-    0.35,
-    -0.03,
-    "io"
-   ],
-   [
-    1.15,
-    -0.3,
+    -0.4,
     "i"
    ],
    [
@@ -147,43 +85,105 @@
    ],
    [
     1.75,
-    0.44,
+    0.42,
     "io"
    ],
    [
     2.2,
-    0.38
+    0.36
+   ]
+  ],
+  "ik.hand_r.oy": [
+   [
+    0,
+    0.21000000000000002,
+    "io"
+   ],
+   [
+    0.35,
+    0.21000000000000002,
+    "io"
+   ],
+   [
+    1.15,
+    -0.47000000000000003,
+    "i"
+   ],
+   [
+    1.42,
+    0.22999999999999998,
+    "o"
+   ],
+   [
+    1.75,
+    -0.43,
+    "io"
+   ],
+   [
+    2.2,
+    -0.37
+   ]
+  ],
+  "ik.hand_l.ox": [
+   [
+    0,
+    0.0,
+    "io"
+   ],
+   [
+    0.35,
+    0.0,
+    "io"
+   ],
+   [
+    1.15,
+    -0.4,
+    "i"
+   ],
+   [
+    1.42,
+    0.02,
+    "o"
+   ],
+   [
+    1.75,
+    0.42,
+    "io"
+   ],
+   [
+    2.2,
+    0.36
    ]
   ],
   "ik.hand_l.oy": [
    [
     0,
-    0.12,
+    0.16,
     "io"
    ],
    [
     0.35,
-    0.12,
+    0.16,
     "io"
    ],
    [
     1.15,
-    -0.58,
+    -0.52,
     "i"
    ],
    [
     1.42,
-    0.14,
+    0.18,
     "o"
    ],
    [
     1.75,
-    -0.6,
+    -0.48,
     "io"
    ],
    [
     2.2,
-    -0.55
+    -0.42
    ]
   ],
   "hand_*.pose": [
@@ -211,7 +211,7 @@
    ],
    [
     1.15,
-    -5,
+    -4,
     "i"
    ],
    [
@@ -221,12 +221,12 @@
    ],
    [
     1.75,
-    6,
+    5,
     "io"
    ],
    [
     2.2,
-    5,
+    4,
     "io"
    ],
    [

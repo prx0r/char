@@ -106,9 +106,10 @@ def direct(character, beats, timing, seed=11, t_offset=0.0, partner_side=None):
         words = [w for w in tm["words"] if len(w["w"].strip(".,?!")) > 3]
         stressed = sorted(words, key=lambda w: -(w["t1"] - w["t0"]))
         # nods on stressed words
-        k = 0 if g == "hold still" else max(0, int(round(emph * energy * 3)))
+        k = 1 if g == "hold still" else max(0, int(round(emph * energy * 3)))
         for w in stressed[:k]:
-            ev["clips"].append({"clip": "nod", "t0": round(w["t0"] + t_offset - 0.2, 3), "amp": round(0.6 + emph * 0.7, 2), "why": "stress:" + w["w"]})
+            a_ = 0.35 if g == "hold still" else 0.6 + emph * 0.7      # held beats keep one tiny nod: still, not frozen
+            ev["clips"].append({"clip": "nod", "t0": round(w["t0"] + t_offset - 0.2, 3), "amp": round(a_, 2), "why": "stress:" + w["w"]})
         # blinks / stillness
         if btype == "punchline" or g == "hold still":
             ev["still"].append({"t0": round(t0, 3), "t1": round(hold_end, 3)})
@@ -136,6 +137,11 @@ def direct(character, beats, timing, seed=11, t_offset=0.0, partner_side=None):
         if not fired and (expr == "annoyed" or g == "small gesture"):
             name, a = action_by(trigger="on_groan")
             if name: fired = fire_action(name, a, t0 + min(1.0, (t1 - t0) * 0.35), None, "on_groan")
+        if not fired and btype == "setup" and emph >= 0.75 and stressed:
+            name, a = action_by(trigger="on_emphasis")
+            if name:
+                w0 = sorted(stressed[:2], key=lambda w: w["t0"])[0]
+                fired = fire_action(name, a, w0["t0"] + t_offset - 0.35, None, "on_emphasis")
         if not fired and btype == "setup" and i == 0:
             name, a = action_by(trigger="on_enter")
             if name: fired = fire_action(name, a, t0, None, "on_enter")
